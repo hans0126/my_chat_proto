@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/default.css">
+    <script src="lib/socket.io.js"></script>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script>
+    var socket = io.connect('http://localhost:3000');
+    socket.on('connectOK', function(_d) {
+        console.log(_d);
+    })
+
+    $(function() {
+        $('#loginBtn').click(function() {
+
+            socket.emit('login', {
+                account: $('#account').val()
+            })
+
+        })
+
+
+        socket.on('login ok', function(_d) {
+            console.log(_d);
+
+            var _r = '';
+            for (var i = 0; i < _d.rooms.length; i++) {
+                _r += "<li>" + _d.rooms[i] + "</li>";
+
+            }
+
+            $('#rooms').html(_r).find('li').each(function(){
+            	$(this).click(function(){
+            		
+            		socket.emit('join room',$(this).text());
+            	})
+            });
+        })
+
+        socket.on('login error', function() {
+            console.log('login error');
+        })
+
+        socket.on('message',function(_d){
+        	console.log(_d);
+        })
+
+    })
+    </script>
+</head>
+
+<body>
+    <input type="text" value="" id="account">
+    <button id="loginBtn">login</button>
+    <ul id="rooms"></ul>
+    <h1></h1>
+</body>
+
+</html>
