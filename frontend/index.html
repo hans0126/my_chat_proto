@@ -5,47 +5,194 @@
     <meta charset="UTF-8">
     <title>Document</title>
     <link rel="stylesheet" href="css/default.css">
+    <style>
+    .used {
+        color: #999;
+    }
+    
+    #rooms .content {
+        width: 400px;
+        height: 200px;
+        border: 1px solid #999;
+        overflow: scroll;
+    }
+    </style>
     <script src="lib/socket.io.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script>
     var socket = io.connect('http://localhost:3000');
     socket.on('connectOK', function(_d) {
-        console.log(_d);
+        renderUserList(_d.users);
     })
 
-    $(function() {
-        $('#loginBtn').click(function() {
+    var currentAccount;
 
-            socket.emit('login', {
-                account: $('#account').val()
+    function renderUserList(_d) {
+        _t = '';
+
+        if (currentAccount) {
+            $('#users').html('');
+            return;
+        }
+
+        for (var i = 0; i < _d.length; i++) {
+            var _a = '';
+            var _class = 'used';
+            if (!_d[i].connect_id) {
+                _a = "account='" + _d[i].account + "'";
+                _class = '';
+            }
+
+            _t += "<li " + _a + " class='" + _class + "'>" + _d[i].name + "</li>";
+        }
+
+        $('#users').html(_t).find('li').each(function() {
+            $(this).click(function() {
+                var _account = $(this).attr('account');
+
+
+                if (_account) {
+                    $('#currentAccount').html($(this).text());
+                    // currentAccount = _account;
+                    socket.emit('login', {
+                        account: _account
+                    })
+                }
+
+
             })
 
         })
 
+    }
 
-        socket.on('login ok', function(_d) {
-            console.log(_d);
+    function renderChatBox(_d) {
 
-            var _r = '';
-            for (var i = 0; i < _d.rooms.length; i++) {
-                _r += "<li>" + _d.rooms[i] + "</li>";
 
+        var _t = '';
+        var _inputArea = '';
+
+        if (!currentAccount.admin) {
+            _inputArea = '<input type="text"><button type="button">send</button>';
+        }
+
+
+        _t += '<li id="' + _d + '"><div class="content"></div>' + _inputArea + '<ul class="users_list"></ul></li>';
+
+        var _this = $('#rooms').append(_t).find('#' + _d);
+        var _content = $('> .content', _this);
+        var _input = $('input[type=text]', _this);
+
+        socket.emit('get history msg', {
+            room: _d
+        });
+
+        socket.emit('get room users', {
+            room: _d
+        });
+
+
+        $('button', _this).click(function() {
+            if (_input.val() != '') {
+                socket.emit('send message', {
+                    room: _d,
+                    text: _input.val(),
+                    owner: currentAccount.account
+                })
             }
 
-            $('#rooms').html(_r).find('li').each(function(){
-            	$(this).click(function(){
-            		
-            		socket.emit('join room',$(this).text());
-            	})
-            });
+            _input.val('');
+
+
         })
 
-        socket.on('login error', function() {
-            console.log('login error');
+
+
+        socket.on('return history msg', function(_d) {
+            var _r = $('#' + _d.room + ' > .content');
+            for (var i = 0; i < _d.messages.length; i++) {
+                _r.append(singleMsg(_d.messages[i]));
+            }
+            //_content
+        });
+
+
+    }
+
+    function renderMsg(_d) {
+        $('#' + _d.room + ' > .content').append(singleMsg(_d));
+        socket.emit('read message', {
+            id: _d.id
+        });
+    }
+
+
+    function renderRoomUser(_d) {
+        var _t = '';
+        for (var i = 0; i < _d.length; i++) {
+            var _status = '';
+            if (!_d[i].connect_id) {
+                _status = '(offline)';
+            }
+
+            _t += "<li>" + _d[i].name + _status + "</li>";
+
+        }
+
+        return _t;
+    }
+
+    function singleMsg(_d) {
+        return "<div id='" + _d.id + "'>" + _d.owner + ":" + _d.text + "(" + timestamp2time(_d.create_date) + ")</div>";
+    }
+
+    function timestamp2time(unix_timestamp) {
+
+        var date = new Date(unix_timestamp);
+        // Hours part from the timestamp
+        var hours = date.getHours();
+        // Minutes part from the timestamp
+        var minutes = "0" + date.getMinutes();
+        // Seconds part from the timestamp
+        var seconds = "0" + date.getSeconds();
+        // Will display time in 10:30:23 format
+        return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+
+    }
+
+
+    $(function() {
+
+        socket.on('return current user', function(_d) {
+            currentAccount = _d;
         })
 
-        socket.on('message',function(_d){
-        	console.log(_d);
+        socket.on('update users list', function(_d) {
+            renderUserList(_d.users);
+        })
+
+        socket.on('get rooms', function(_d) {
+            for (var i = 0; i < _d.rooms.length; i++) {
+                renderChatBox(_d.rooms[i]);
+            }
+
+
+        })
+
+
+        socket.on('return room users', function(_d) {
+            var _u = $('#' + _d.room).children('.users_list');
+            _u.html(renderRoomUser(_d.users));
+
+        })
+
+
+        /* socket.on('get rooms', function(_d) {
+            renderChatBox(_d.rooms);
+        })
+*/
+        socket.on('get message', function(_d) {
+            renderMsg(_d);
         })
 
     })
@@ -53,8 +200,9 @@
 </head>
 
 <body>
-    <input type="text" value="" id="account">
-    <button id="loginBtn">login</button>
+    <h1 id="currentAccount"></h1>
+    <ul id="users">
+    </ul>
     <ul id="rooms"></ul>
     <h1></h1>
 </body>
