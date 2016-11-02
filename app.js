@@ -2,8 +2,12 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var chat = require("./chat")(io);
 var path = require("path");
+/*
 var randomstring = require("randomstring");
+var SocketIOFile = require('socket.io-file');
+var fs = require('fs');
 
 
 
@@ -21,6 +25,8 @@ var rooms = [];
 rooms['room1'] = ['08073', '08072'];
 rooms['room2'] = ['08073', '08069'];
 
+*/
+
 
 var frontendPath = path.resolve(__dirname + '/frontend/');
 
@@ -31,6 +37,8 @@ app.get('/', function(req, res) {
     res.sendfile(path.join('frontend', 'index.html'));
 });
 
+app.use(express.static(__dirname + '/node_modules/socket.io/node_modules/socket.io-client'));
+app.use(express.static(__dirname + '/node_modules/socket.io-file-client'));
 
 /*
 1.rooms list must create
@@ -47,8 +55,69 @@ users['connect id'] = {name:name}
 
 */
 
+/*
+
+
 io.on('connection', function(socket) {
     console.log('a user connected');
+
+    var imageUploader = new SocketIOFile(socket, {
+        uploadDir: {
+            image: 'frontend/file'
+        }
+    });
+
+    imageUploader.on('start', start);
+    imageUploader.on('stream', stream);
+    imageUploader.on('complete', complete);
+
+
+    function start(data) {
+        console.log('Upload started');
+    }
+
+    function stream(data) {
+        console.log('Streaming... ' + data.uploaded + ' / ' + data.size);
+    }
+
+    function complete(data) {
+        var _d = data.data;
+        var newFileName = data.name.split('.');
+        newFileName = randomstring.generate() + "." + newFileName[newFileName.length - 1];
+        fs.rename(`${data.path}/${data.name}`, `${data.path}/${newFileName}`, function(err) {
+            if (err) throw err;
+
+            data.name = newFileName;
+
+            var _m = {
+                owner: _d.owner,
+                room: _d.room,
+                text: `[img:${newFileName}]`,
+                users: [],
+                create_date: new Date().getTime(),
+                id: randomstring.generate()
+            }
+
+            for (var i = 0; i < rooms[_d.room].length; i++) {
+                _m.users.push({
+                    user: rooms[_d.room][i],
+                    read_time: null
+                })
+            }
+
+            messages.push(_m);
+
+            io.in(_d.room).emit('get message', _m);
+
+
+
+            //io.emit('ss',data);
+        })
+
+
+    }
+
+
 
     socket.emit('connectOK', { users: users });
 
@@ -96,7 +165,7 @@ io.on('connection', function(socket) {
             }
 
             for (var key in rooms) {
-                if (rooms[key].indexOf(_cu.account) > -1) {                 
+                if (rooms[key].indexOf(_cu.account) > -1) {
                     returnRoomUsers(key);
                     //socket.broadcast.to(key).emit('message', 'join ' + _currentUser.account);
                 }
@@ -191,6 +260,9 @@ io.on('connection', function(socket) {
 
 
 
+
+
+
         //retur rooms back to users
 
 
@@ -205,7 +277,7 @@ io.on('connection', function(socket) {
 
 });
 
-
+*/
 http.listen(3000, function() {
     console.log('listening on *:3000');
 });
