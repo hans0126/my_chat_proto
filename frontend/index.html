@@ -13,18 +13,10 @@
     </ul>
     <ul id="rooms"></ul>
     <h1></h1>
-    <div>
-        <input type="file" id='file' data-multiple-caption="{count} files selected">
-        <button type='button' id='upload_btn'>upload</button>
-    </div>
-    <div id="img"></div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script>
-
-
-
     function tripImg(_msg) {
         var _re = _msg.match(/^\[(.*)\]$/);
         if (_re) {
@@ -188,21 +180,38 @@
 
         });
 
-        socket.on('returnHistoryMsg', function(_d) {
-            var _r = $('#' + _d.room + ' > .content');
-            for (var i = 0; i < _d.messages.length; i++) {
-                _r.append(singleMsg(_d.messages[i]));
-            }
-            //_content
-        });
+
 
 
     }
 
+
+    socket.on('returnHistoryMsg', function(_d) {
+        console.log(_d);
+        var _r = $('#' + _d.room + ' > .content');
+        for (var i = 0; i < _d.messages.length; i++) {
+           // _r.append(singleMsg(_d.messages[i]));
+            renderMsg(_d.messages[i]);
+            //_r.append(renderMsg(_d.messages[i]));
+        }
+        //_content
+    });
+
     function renderMsg(_d) {
-        $('#' + _d.room + ' > .content').append(singleMsg(_d));
+        var _cBox =  $('#' + _d.room + ' > .content');
+        _cBox.append(singleMsg(_d));
+        console.log(_cBox.prop("scrollHeight"));
+        _cBox.scrollTop(500);
+
+        console.log(_cBox);
+
+       // console.log(_cBox.prop("scrollHeight"));
+      // _cBox.scrollTop(_cBox.prop("scrollHeight"));
+    
         socket.emit('readMessage', {
-            id: _d.id
+            id: _d.id,
+            account: currentAccount.account,
+            room: _d.room
         });
     }
 
@@ -223,9 +232,7 @@
     }
 
     function singleMsg(_d) {
-       
-
-        return "<div id='" + _d.id + "'>" + _d.owner + ":" +tripImg(_d.text) + "(" + timestamp2time(_d.create_date) + ")</div>";
+        return "<div id='" + _d.id + "'>" + _d.owner + ":" + tripImg(_d.msg) + "(" + timestamp2time(_d.create_date) + ")-已讀<span class='readed'>" + _d.read_count + "</span></div>";
     }
 
     function timestamp2time(unix_timestamp) {
@@ -241,6 +248,7 @@
         return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
 
     }
+
 
 
     function streaming(data) {
@@ -300,10 +308,15 @@
             for (var i = 0; i < _d.rooms.length; i++) {
                 renderChatBox(_d.rooms[i]);
             }
-
-
         })
 
+
+        socket.on('getReaded', function(_d) {
+            if(!_d){
+                return;
+            }
+            $('#' + _d.id).children('.readed').text(_d.read_count);
+        })
 
         socket.on('returnRoomUsers', function(_d) {
             var _u = $('#' + _d.room).children('.users_list');
@@ -317,7 +330,9 @@
         })
 */
         socket.on('getMessage', function(_d) {
+
             renderMsg(_d);
+
         })
 
 

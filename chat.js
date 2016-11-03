@@ -1,6 +1,7 @@
 var randomstring = require("randomstring");
 var SocketIOFile = require('socket.io-file');
 var fs = require('fs');
+var modelMsg = require('./models/msg');
 
 var users = [{ name: "hans", account: "08073", connect_id: null },
     { name: "ben", account: "08072", connect_id: null },
@@ -15,12 +16,21 @@ var rooms = [];
 rooms['room1'] = ['08073', '08072'];
 rooms['room2'] = ['08073', '08069'];
 
+//modelMsg.mymy();
+
+
+
+
+
+
 
 function myChat(io) {
 
     io.on('connection', function(socket) {
-        console.log('a user connected');
+        var clientIp = socket.request.connection.remoteAddress;
+        console.log(clientIp);
 
+       
         socket.emit('connected', { users: users });
 
         socket.on('login', function(_d) {
@@ -61,12 +71,12 @@ function myChat(io) {
                 //renew users status
                 for (var key in rooms) {
                     if (rooms[key].indexOf(_disconnectUser.account) > -1) {
-                        returnRoomUsers(key);                        
+                        returnRoomUsers(key);
                     }
                 }
             });
 
-           
+
 
 
             socket.on('sendMessage', function(_d) {
@@ -75,33 +85,52 @@ function myChat(io) {
 
             socket.on('readMessage', function(_d) {
 
-                for (var i = 0; i < messages.length; i++) {
-                    if (messages[i].id == _d.id) {
-                        for (j = 0; j < messages[i].users.length; j++) {
-                            if (messages[i].users[j].user == _currentUser.account) {
-                                messages[i].users[j].read_time = new Date().getTime();
-                                break;
+                //console.log(_d.account);
+
+                modelMsg.findOneAndUpdate({
+                        room: _d.room,
+                        id: _d.id,
+                        users: {
+                            $elemMatch: {
+                                user: _d.account,
+                                read_time: null
                             }
                         }
-                        break;
-                    }
-                }
+                    }, {
+                        $set: {
+                            'users.$.read_time': currentDate()
+                        },
+                        $inc: {
+                            read_count: 1
+                        }
+
+                    }, { new: true },
+                    function(err, _p) {                       	
+                       	io.in(_d.room).emit('getReaded', _p);
+                    })
 
             })
+
             //get rooms users
             socket.on('getRoomUsers', function(_d) {
                 returnRoomUsers(_d.room);
             })
 
             //get history msg
-            socket.on('getHistoryMsg', function(_d) {                
+            socket.on('getHistoryMsg', function(_d) {
+            	//console.log("S");
                 var output_msg = [];
-                for (var i = 0; i < messages.length; i++) {
-                    if (messages[i].room == _d.room) {
-                        output_msg.push(messages[i]);
+
+                modelMsg.find({
+                    room: _d.room
+                }, function(err, _re) {
+                    for (var i = 0; i < _re.length; i++) {
+                        output_msg.push(_re[i]);
                     }
-                }
-                socket.emit('returnHistoryMsg', { messages: output_msg, room: _d.room });
+                   
+
+                    socket.emit('returnHistoryMsg', { messages: output_msg, room: _d.room });
+                })              
             })
 
 
@@ -128,12 +157,13 @@ function myChat(io) {
     }
 
     function createMsgAndBrodcast(_owner, _room, _msg) {
+
         var _m = {
             owner: _owner,
             room: _room,
-            text: _msg,
+            msg: _msg,
             users: [],
-            create_date: new Date().getTime(),
+            create_date: currentDate(),
             id: randomstring.generate()
         }
 
@@ -144,8 +174,11 @@ function myChat(io) {
             })
         }
 
-        messages.push(_m);
-        io.in(_room).emit('getMessage', _m);
+        var _msgMongo = new modelMsg(_m);
+
+        _msgMongo.save().then(function(_p) {
+            io.in(_room).emit('getMessage', _p);
+        })
 
     }
 
@@ -165,8 +198,20 @@ function myChat(io) {
     }
 
 
+
+
 }
 
+function currentDate() {
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = ("0" + (date.getMonth() + 1)).slice(-2);
+    var day = ("0" + date.getDate()).slice(-2);
+    var hours = ("0" + date.getHours()).slice(-2);
+    var minutes = ("0" + date.getMinutes()).slice(-2);
+    var seconds = ("0" + date.getSeconds()).slice(-2);
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
 
 
 
