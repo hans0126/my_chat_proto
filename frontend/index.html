@@ -22,6 +22,9 @@
     <script src="/socket.io-file-client.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script>
+
+
+
     function tripImg(_msg) {
         var _re = _msg.match(/^\[(.*)\]$/);
         if (_re) {
@@ -66,7 +69,7 @@
 
     var socket = io.connect('http://localhost:3000');
     var socketIOFile = new SocketIOFileClient(socket);
-    socket.on('connectOK', function(_d) {
+    socket.on('connected', function(_d) {
         renderUserList(_d.users);
     })
 
@@ -126,18 +129,18 @@
         var _content = $('> .content', _this);
         var _input = $('input[type=text]', _this);
 
-        socket.emit('get history msg', {
+        socket.emit('getHistoryMsg', {
             room: _d
         });
 
-        socket.emit('get room users', {
+        socket.emit('getRoomUsers', {
             room: _d
         });
 
 
         $('button', _this).click(function() {
             if (_input.val() != '') {
-                socket.emit('send message', {
+                socket.emit('sendMessage', {
                     room: _d,
                     text: _input.val(),
                     owner: currentAccount.account
@@ -173,7 +176,7 @@
                     'image/jpeg',
                     'image/pjpeg'
                 ],
-                to: 'image',
+                to: 'file',
                 data: {
                     room: _d,
                     owner: currentAccount.account
@@ -185,12 +188,7 @@
 
         });
 
-
-
-
-
-
-        socket.on('return history msg', function(_d) {
+        socket.on('returnHistoryMsg', function(_d) {
             var _r = $('#' + _d.room + ' > .content');
             for (var i = 0; i < _d.messages.length; i++) {
                 _r.append(singleMsg(_d.messages[i]));
@@ -203,7 +201,7 @@
 
     function renderMsg(_d) {
         $('#' + _d.room + ' > .content').append(singleMsg(_d));
-        socket.emit('read message', {
+        socket.emit('readMessage', {
             id: _d.id
         });
     }
@@ -298,7 +296,7 @@
             renderUserList(_d.users);
         })
 
-        socket.on('get rooms', function(_d) {
+        socket.on('getRooms', function(_d) {
             for (var i = 0; i < _d.rooms.length; i++) {
                 renderChatBox(_d.rooms[i]);
             }
@@ -307,7 +305,7 @@
         })
 
 
-        socket.on('return room users', function(_d) {
+        socket.on('returnRoomUsers', function(_d) {
             var _u = $('#' + _d.room).children('.users_list');
             _u.html(renderRoomUser(_d.users));
 
@@ -318,7 +316,7 @@
             renderChatBox(_d.rooms);
         })
 */
-        socket.on('get message', function(_d) {
+        socket.on('getMessage', function(_d) {
             renderMsg(_d);
         })
 
@@ -344,7 +342,7 @@
                     'image/jpeg',
                     'image/pjpeg'
                 ],
-                to: 'image',
+                to: 'file',
                 data: {
                     ss: "aa"
                 }
