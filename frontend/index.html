@@ -15,6 +15,7 @@
     <ul id="rooms"></ul>
     <h1></h1>
     <div id="chatWrap">
+      <!--
         <div class='panel'>
             <a href="#" class='minimizeBtn'>panel name</a>
             <div class='panelContent'>
@@ -31,6 +32,8 @@
         </div>
         <div class='panel'>
         </div>
+
+        -->
     </div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>
@@ -40,21 +43,7 @@
     $(function() {
         init();
 
-        $('.contentTitle').on('click', function(e) {
-            e.preventDefault();
-            $(this).parents('.panelContent').hide();
-        })
-
-        $('.minimizeBtn').on('click', function(e) {
-            e.preventDefault();
-            $(this).siblings('.panelContent').show();
-        })
-
-        $('.contentInput').keypress(function(e) {
-            if (e.which == 13) {
-                console.log('submit');
-            }
-        })
+      
 
     })
     </script>

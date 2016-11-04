@@ -5,7 +5,7 @@ var modelMsg = require('./models/msg');
 
 var users = [{ name: "hans", account: "08073", connect_id: null },
     { name: "ben", account: "08072", connect_id: null },
-    { name: "will", account: "08069", connect_id: null }
+    { name: "eric", account: "08071", connect_id: null }
 ];
 
 var messages = [];
@@ -14,23 +14,17 @@ var accounts = ['hans'];
 
 var rooms = [];
 rooms['room1'] = ['08073', '08072'];
-rooms['room2'] = ['08073', '08069'];
+rooms['room2'] = ['08073', '08071'];
+rooms['room3'] = ['08073', '08071','08072'];
 
 //modelMsg.mymy();
-
-
-
-
-
-
 
 function myChat(io) {
 
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
         console.log(clientIp);
-
-       
+       	
         socket.emit('connected', { users: users });
 
         socket.on('login', function(_d) {
@@ -41,8 +35,9 @@ function myChat(io) {
                 if (users[i].account == _d.account) {
                     users[i].connect_id = socket.id;
                     _currentUser = users[i];
-                    socket.emit('return current user', _currentUser);
-                    io.emit('update users list', { users: users });
+                    //socket.emit('returnCurrentUser', _currentUser);
+                    socket.emit('login', _currentUser);
+                    io.emit('updateUsersList', { users: users });
                     break;
                 }
             }
@@ -52,9 +47,11 @@ function myChat(io) {
                     socket.join(key);
                     _userInRoom.push(key);
                     returnRoomUsers(key);
-                    //socket.broadcast.to(key).emit('message', 'join ' + _currentUser.account);
+                    //socket.broadcast.to(key).emit('attention',  _currentUser.account + ' online');
                 }
             }
+
+            socket.broadcast.emit('attention',  _currentUser.account + ' online');
 
             socket.emit('getRooms', { rooms: _userInRoom });
 
@@ -64,7 +61,7 @@ function myChat(io) {
                     if (users[i].connect_id == socket.id) {
                         users[i].connect_id = null;
                         _disconnectUser = users[i];
-                        io.emit('update users list', { users: users });
+                        io.emit('updateUsersList', { users: users });
                         break;
                     }
                 }
@@ -83,9 +80,7 @@ function myChat(io) {
                 createMsgAndBrodcast(_d.owner, _d.room, _d.text);
             })
 
-            socket.on('readMessage', function(_d) {
-
-                //console.log(_d.account);
+            socket.on('readMessage', function(_d) {            
 
                 modelMsg.findOneAndUpdate({
                         room: _d.room,
@@ -129,10 +124,46 @@ function myChat(io) {
                     }
                    
 
-                    socket.emit('returnHistoryMsg', { messages: output_msg, room: _d.room });
+                    socket.emit('getHistoryMsg', { messages: output_msg, room: _d.room });
                 })              
             })
 
+            socket.on('getUnReadMessage',function(_d){
+            	
+            	 modelMsg.find({
+                        room: _d.room,                        
+                        users: {
+                            $elemMatch: {
+                                user: _d.account,
+                                read_time: null
+                            }
+                        }
+                    },function(err,_re){
+                    	console.log(_re);
+                    	socket.emit('getUnReadMessage',{room:_d.room,
+                    									msg:_re});
+                    })
+
+
+            })
+
+
+            socket.on('getUnReadMessageCount',function(_d){
+            	 modelMsg.find({
+                        room: _d.room,                        
+                        users: {
+                            $elemMatch: {
+                                user: _d.account,
+                                read_time: null
+                            }
+                        }
+                    },function(err,_re){                    	
+                    	socket.emit('getUnReadMessageCount',{
+                    		room:_d.room,
+                    		count:_re.length
+                    	});
+                    })
+            })
 
             //upload file
             var fileUploader = new SocketIOFile(socket, {
@@ -165,7 +196,7 @@ function myChat(io) {
             users: [],
             create_date: currentDate(),
             id: randomstring.generate()
-        }
+        }      
 
         for (var i = 0; i < rooms[_room].length; i++) {
             _m.users.push({
@@ -194,12 +225,8 @@ function myChat(io) {
             }
         }
 
-        io.in(_d).emit('returnRoomUsers', { room: _d, users: _out });
+        io.in(_d).emit('getRoomUsers', { room: _d, users: _out });
     }
-
-
-
-
 }
 
 function currentDate() {

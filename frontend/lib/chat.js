@@ -120,12 +120,23 @@ function renderUserList(_d) {
 }
 
 function renderChatBox(_d) {
-    var _t = '';
+    // console.log(_d);
+    var _t = "<div class='panel' id='r_" + _d + "'>";
+    _t += "<a href='#' class='minimizeBtn'>" + _d + "</a>";
+    _t += "<div class='panelContent'>";
+    _t += "<div class='contentHeader'>";
+    _t += "<div class='contentTitle'>" + _d + "</div>";
+    _t += "</div>";
+    _t += "<div class='contentBody'></div>";
+    _t += "<div class='contentInputArea'>";
+    _t += "<input type='text' class='contentInput'>";
+    _t += "</div></div></div>";
 
-    _t += '<div class="chatBox"><div class="content"></div><ul class="users_list"></ul><div><input type="text"/><button>send</button></div></div>';
 
-    var _this = $(_t).appendTo($('#' + _d + ' > .chat_content'));
-    var _content = $('> .content', _this);
+    // _t = '<div class="chatBox"><div class="content"></div><ul class="users_list"></ul><div><input type="text"/><button>send</button></div></div>';
+
+    var _this = $(_t).appendTo($('#chatWrap'));
+    var _content = $('.contentBody', _this);
     var _input = $('input[type=text]', _this);
 
     socket.emit('getHistoryMsg', {
@@ -149,6 +160,35 @@ function renderChatBox(_d) {
         _input.val('');
 
     })
+
+
+    $('.contentTitle', _this).on('click', function(e) {
+        e.preventDefault();
+        $(this).parents('.panelContent').hide();
+    })
+
+    $('.minimizeBtn', _this).on('click', function(e) {
+        e.preventDefault();
+        $(this).siblings('.panelContent').show();
+    })
+
+    _input.keypress(function(e) {
+        if (e.which == 13) {
+
+            if ($(this).val() != '') {
+                socket.emit('sendMessage', {
+                    room: _d,
+                    text: $(this).val(),
+                    owner: currentAccount.account
+                })
+            }
+
+            $(this).val('');
+
+
+        }
+    })
+
 
 
     _input.on("dragover", function(event) {
@@ -189,7 +229,7 @@ function renderChatBox(_d) {
 }
 
 function renderMsg(_d) {
-    var _cBox = $('#' + _d.room + ' > .chat_content > .chatBox > .content');
+    var _cBox = $('#r_' + _d.room + ' .contentBody');
 
     if (_cBox.length == 0 || _cBox.is(":hidden")) {
         return;

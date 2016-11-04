@@ -1,6 +1,8 @@
  * {
      box-sizing: border-box;
  }
+
+
  
  .used {
      color: #999;
@@ -45,6 +47,7 @@
      width: 260px;
      height: 26px;
      margin-left: 9px;
+     font-size: 13px;
  }
  
  .minimizeBtn {
@@ -76,7 +79,11 @@
      height: 240px;
      overflow-y: scroll
  }
+ 
+ .contentInput {
+     width: 100%;
+ }
 
-.contentInput {
-  width: 100%;
-}
+  .contentInput.hover{
+    background: #aaa;
+  }
