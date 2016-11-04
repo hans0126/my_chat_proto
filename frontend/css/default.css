@@ -6,7 +6,7 @@
      width: 400px;
      height: 200px;
      border: 1px solid #999;
-     overflow: scroll;
+    overflow: scroll;
  }
 
   #rooms input[type=text].hover {
@@ -28,3 +28,4 @@
 .data_transfer.hover{
 	border:3px dashed #aaa;
 }
+

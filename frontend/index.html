@@ -96,26 +96,16 @@
                         account: _account
                     })
                 }
-
-
             })
-
         })
 
     }
 
     function renderChatBox(_d) {
-
-
         var _t = '';
         var _inputArea = '';
 
-        if (!currentAccount.admin) {
-            _inputArea = '<input type="text"><button type="button">send</button><br/>';
-        }
-
-
-        _t += '<li id="' + _d + '"><div class="content"></div>' + _inputArea + '<ul class="users_list"></ul></li>';
+        _t += '<li id="' + _d + '"><div class="content"></div><ul class="users_list"></ul></li>';
 
         var _this = $('#rooms').append(_t).find('#' + _d);
         var _content = $('> .content', _this);
@@ -190,7 +180,7 @@
         console.log(_d);
         var _r = $('#' + _d.room + ' > .content');
         for (var i = 0; i < _d.messages.length; i++) {
-           // _r.append(singleMsg(_d.messages[i]));
+            // _r.append(singleMsg(_d.messages[i]));
             renderMsg(_d.messages[i]);
             //_r.append(renderMsg(_d.messages[i]));
         }
@@ -198,16 +188,22 @@
     });
 
     function renderMsg(_d) {
-        var _cBox =  $('#' + _d.room + ' > .content');
-        _cBox.append(singleMsg(_d));
-        console.log(_cBox.prop("scrollHeight"));
-        _cBox.scrollTop(500);
+        var _cBox = $('#' + _d.room + ' > .content');
+        //  _cBox.append(singleMsg(_d));
 
-        console.log(_cBox);
+        var _msg = $(singleMsg(_d)).appendTo(_cBox);
+        // console.log(_msg);
 
-       // console.log(_cBox.prop("scrollHeight"));
-      // _cBox.scrollTop(_cBox.prop("scrollHeight"));
-    
+        _msg.find('img').each(function() {
+            $(this).on('load', function() {
+                _cBox.scrollTop(_cBox.prop("scrollHeight"));
+            })
+        })
+
+        _cBox.scrollTop(_cBox.prop("scrollHeight"));
+
+
+
         socket.emit('readMessage', {
             id: _d.id,
             account: currentAccount.account,
@@ -273,6 +269,8 @@
 
     $(function() {
 
+        //$('#box').scrollTop( $('#box').prop("scrollHeight"));
+
         $('.data_transfer').each(function() {
             $(this).on("dragover", function(event) {
                 event.preventDefault();
@@ -312,7 +310,7 @@
 
 
         socket.on('getReaded', function(_d) {
-            if(!_d){
+            if (!_d) {
                 return;
             }
             $('#' + _d.id).children('.readed').text(_d.read_count);
