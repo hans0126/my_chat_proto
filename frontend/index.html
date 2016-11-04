@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Document</title>
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/default.css">
 </head>
 
@@ -13,363 +14,46 @@
     </ul>
     <ul id="rooms"></ul>
     <h1></h1>
+    <div id="chatWrap">
+        <div class='panel'>
+            <a href="#" class='minimizeBtn'>panel name</a>
+            <div class='panelContent'>
+                <div class='contentHeader'>
+                    <div class='contentTitle'>panel name</div>
+                </div>
+                <div class='contentBody'>
+                    <div style='height: 800px;'></div>
+                </div>
+                <div class='contentInputArea'>
+                    <input type="text" class='contentInput'>
+                </div>
+            </div>
+        </div>
+        <div class='panel'>
+        </div>
+    </div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="lib/chat.js"></script>
     <script>
-    function tripImg(_msg) {
-        var _re = _msg.match(/^\[(.*)\]$/);
-        if (_re) {
-            _re = _re[1];
-            _re = _re.split(":");
-
-            if (_re[0] == "img") {
-                _msg = "<img src='file/" + _re[1] + "' style='width:200px'/>";
-            }
-
-
-        }
-
-        return _msg;
-
-    }
-
-
-
-
-    'draggable' in document.createElement('span');
-    /*
-    var dt = document.getElementById('data_transfer');
-
-    dt.ondragover = function() {
-        this.className = 'hover';
-        return false;
-    };
-    dt.ondragleave  = function() {
-        this.className = '';
-        console.log("A");
-        return false;
-    };
-    dt.ondrop = function(event) {
-        event.preventDefault && event.preventDefault();
-        var files = event.dataTransfer.files;
-        console.log(files);
-        return false;
-    }
-
-    */
-
-    var socket = io.connect('http://localhost:3000');
-    var socketIOFile = new SocketIOFileClient(socket);
-    socket.on('connected', function(_d) {
-        renderUserList(_d.users);
-    })
-
-    var currentAccount;
-
-    function renderUserList(_d) {
-        _t = '';
-
-        if (currentAccount) {
-            $('#users').html('');
-            return;
-        }
-
-        for (var i = 0; i < _d.length; i++) {
-            var _a = '';
-            var _class = 'used';
-            if (!_d[i].connect_id) {
-                _a = "account='" + _d[i].account + "'";
-                _class = '';
-            }
-
-            _t += "<li " + _a + " class='" + _class + "'>" + _d[i].name + "</li>";
-        }
-
-        $('#users').html(_t).find('li').each(function() {
-            $(this).click(function() {
-                var _account = $(this).attr('account');
-                if (_account) {
-                    $('#currentAccount').html($(this).text());
-                    // currentAccount = _account;
-                    socket.emit('login', {
-                        account: _account
-                    })
-                }
-            })
-        })
-
-    }
-
-    function renderChatBox(_d) {
-        var _t = '';
-        var _inputArea = '';
-
-        _t += '<li id="' + _d + '"><div class="content"></div><ul class="users_list"></ul></li>';
-
-        var _this = $('#rooms').append(_t).find('#' + _d);
-        var _content = $('> .content', _this);
-        var _input = $('input[type=text]', _this);
-
-        socket.emit('getHistoryMsg', {
-            room: _d
-        });
-
-        socket.emit('getRoomUsers', {
-            room: _d
-        });
-
-
-        $('button', _this).click(function() {
-            if (_input.val() != '') {
-                socket.emit('sendMessage', {
-                    room: _d,
-                    text: _input.val(),
-                    owner: currentAccount.account
-                })
-            }
-
-            _input.val('');
-
-        })
-
-
-        _input.on("dragover", function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            $(this).addClass('hover');
-        });
-
-        _input.on("dragleave", function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            $(this).removeClass('hover');
-        });
-
-        _input.on("drop", function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            var _file = event.originalEvent.dataTransfer.files[0];
-
-            socketIOFile.upload(_file, {
-                types: [
-                    'image/png',
-                    'image/jpeg',
-                    'image/pjpeg'
-                ],
-                to: 'file',
-                data: {
-                    room: _d,
-                    owner: currentAccount.account
-                }
-            });
-
-            _input.removeClass('hover');
-
-
-        });
-
-
-
-
-    }
-
-
-    socket.on('returnHistoryMsg', function(_d) {
-        console.log(_d);
-        var _r = $('#' + _d.room + ' > .content');
-        for (var i = 0; i < _d.messages.length; i++) {
-            // _r.append(singleMsg(_d.messages[i]));
-            renderMsg(_d.messages[i]);
-            //_r.append(renderMsg(_d.messages[i]));
-        }
-        //_content
-    });
-
-    function renderMsg(_d) {
-        var _cBox = $('#' + _d.room + ' > .content');
-        //  _cBox.append(singleMsg(_d));
-
-        var _msg = $(singleMsg(_d)).appendTo(_cBox);
-        // console.log(_msg);
-
-        _msg.find('img').each(function() {
-            $(this).on('load', function() {
-                _cBox.scrollTop(_cBox.prop("scrollHeight"));
-            })
-        })
-
-        _cBox.scrollTop(_cBox.prop("scrollHeight"));
-
-
-
-        socket.emit('readMessage', {
-            id: _d.id,
-            account: currentAccount.account,
-            room: _d.room
-        });
-    }
-
-
-    function renderRoomUser(_d) {
-        var _t = '';
-        for (var i = 0; i < _d.length; i++) {
-            var _status = '';
-            if (!_d[i].connect_id) {
-                _status = '(offline)';
-            }
-
-            _t += "<li>" + _d[i].name + _status + "</li>";
-
-        }
-
-        return _t;
-    }
-
-    function singleMsg(_d) {
-        return "<div id='" + _d.id + "'>" + _d.owner + ":" + tripImg(_d.msg) + "(" + timestamp2time(_d.create_date) + ")-已讀<span class='readed'>" + _d.read_count + "</span></div>";
-    }
-
-    function timestamp2time(unix_timestamp) {
-
-        var date = new Date(unix_timestamp);
-        // Hours part from the timestamp
-        var hours = date.getHours();
-        // Minutes part from the timestamp
-        var minutes = "0" + date.getMinutes();
-        // Seconds part from the timestamp
-        var seconds = "0" + date.getSeconds();
-        // Will display time in 10:30:23 format
-        return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-
-    }
-
-
-
-    function streaming(data) {
-        console.log('SocketIOFileClient: Client streaming... ' + data.uploaded + ' / ' + data.size);
-    }
-
-    function complete(data) {
-        console.log('File Uploaded Successfully!');
-        console.log(data);
-    }
-
-    function error(data) {
-        console.log('Error while uploading:');
-        console.log(data);
-    }
-
-    socketIOFile.on('stream', streaming);
-    socketIOFile.on('complete', complete);
-    socketIOFile.on('error', error);
-
-
-
     $(function() {
+        init();
 
-        //$('#box').scrollTop( $('#box').prop("scrollHeight"));
-
-        $('.data_transfer').each(function() {
-            $(this).on("dragover", function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                $(this).addClass('hover');
-            });
-
-            $(this).on("dragleave", function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                $(this).removeClass('hover');
-            });
-
-            $(this).on("drop", function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                alert("Dropped!");
-            });
-
-
+        $('.contentTitle').on('click', function(e) {
+            e.preventDefault();
+            $(this).parents('.panelContent').hide();
         })
 
-
-        socket.on('return current user', function(_d) {
-            currentAccount = _d;
+        $('.minimizeBtn').on('click', function(e) {
+            e.preventDefault();
+            $(this).siblings('.panelContent').show();
         })
 
-        socket.on('update users list', function(_d) {
-            renderUserList(_d.users);
-        })
-
-        socket.on('getRooms', function(_d) {
-            for (var i = 0; i < _d.rooms.length; i++) {
-                renderChatBox(_d.rooms[i]);
+        $('.contentInput').keypress(function(e) {
+            if (e.which == 13) {
+                console.log('submit');
             }
-        })
-
-
-        socket.on('getReaded', function(_d) {
-            if (!_d) {
-                return;
-            }
-            $('#' + _d.id).children('.readed').text(_d.read_count);
-        })
-
-        socket.on('returnRoomUsers', function(_d) {
-            var _u = $('#' + _d.room).children('.users_list');
-            _u.html(renderRoomUser(_d.users));
-
-        })
-
-
-        /* socket.on('get rooms', function(_d) {
-            renderChatBox(_d.rooms);
-        })
-*/
-        socket.on('getMessage', function(_d) {
-
-            renderMsg(_d);
-
-        })
-
-
-
-
-
-
-
-
-        socket.on('ss', function(_d) {
-            $('#img').html('<img src="file/' + _d.name + '"/>');
-
-        })
-
-        $('#upload_btn').click(function() {
-
-            var _f = $('#file').prop("files")[0];
-
-            socketIOFile.upload(_f, {
-                types: [
-                    'image/png',
-                    'image/jpeg',
-                    'image/pjpeg'
-                ],
-                to: 'file',
-                data: {
-                    ss: "aa"
-                }
-            });
-
-            console.log(socketIOFile);
-
-
-            // var file = document.getElementById('file').files[0];
-
-            // console.log(file);
-
-
-
         })
 
     })

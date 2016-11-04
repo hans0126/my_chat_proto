@@ -1,3 +1,7 @@
+ * {
+     box-sizing: border-box;
+ }
+ 
  .used {
      color: #999;
  }
@@ -6,26 +10,73 @@
      width: 400px;
      height: 200px;
      border: 1px solid #999;
-    overflow: scroll;
+     overflow: scroll;
+ }
+ 
+ #rooms input[type=text].hover {
+     background: #aaa;
+ }
+ 
+ #img > img {
+     width: 70px;
+     display: block;
+ }
+ 
+ .data_transfer {
+     width: 300px;
+     height: 300px;
+     border: 3px dashed #555555;
+ }
+ 
+ .data_transfer.hover {
+     border: 3px dashed #aaa;
+ }
+ 
+ #chatWrap {
+     position: fixed;
+     bottom: 0;
+     left: 0;
+     right: 0;
+ }
+ 
+ .panel {
+     position: relative;
+     float: right;
+     width: 260px;
+     height: 26px;
+     margin-left: 9px;
+ }
+ 
+ .minimizeBtn {
+     position: absolute;
+     bottom: 0;
+     z-index: 30;
+     padding: 9px;
+     background: #eee;
+     border: 1px solid #aaa;
+ }
+ 
+ .contentHeader {
+     padding: 9px;
+     background: #eee;
+ }
+ 
+ .panelContent {
+     position: absolute;
+     bottom: 0;
+     left: 0;
+     right: 0;
+     height: 324px;
+     border: 1px solid #aaa;
+     z-index: 40;
+     background: #FFF;
+ }
+ 
+ .contentBody {
+     height: 240px;
+     overflow-y: scroll
  }
 
-  #rooms input[type=text].hover {
-	background: #aaa;
-  }
-
-#img > img {
-	width: 70px;
-  display: block;
+.contentInput {
+  width: 100%;
 }
-
-.data_transfer {
-	width: 300px;
-	height: 300px;
-
-	border:3px dashed #555555;
-}
-
-.data_transfer.hover{
-	border:3px dashed #aaa;
-}
-
