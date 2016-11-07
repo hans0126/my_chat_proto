@@ -25,6 +25,8 @@ function myChat(io) {
         var clientIp = socket.request.connection.remoteAddress;
         console.log(clientIp);
        	
+       
+
         socket.emit('connected', { users: users });
 
         socket.on('login', function(_d) {

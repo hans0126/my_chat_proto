@@ -12,6 +12,10 @@ function init() {
         renderUserList(_d.users);
     })
 
+    socket.on('send_test', function(_d) {
+        console.log(_d);
+    })
+
     socket.on('login', function(_d) {
         currentAccount = _d;
         socket.on('attention', function(_d) {

@@ -7,22 +7,14 @@ var path = require("path");
 var mongoose = require('mongoose');
 
 mongoose.connect("mongodb://localhost:27017/chat");
-
-
-
-
 var frontendPath = path.resolve(__dirname + '/frontend/');
 
 app.use(express.static(frontendPath));
 
-app.get('/', function(req, res) {
-    res.sendfile(path.join('frontend', 'index.html'));
-});
-
 app.use(express.static(__dirname + '/node_modules/socket.io/node_modules/socket.io-client'));
 app.use(express.static(__dirname + '/node_modules/socket.io-file-client'));
 
-
+require("./routes")(app,io);
 
 http.listen(3000, function() {
     console.log('listening on *:3000');
