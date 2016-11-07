@@ -14,36 +14,196 @@
     </ul>
     <ul id="rooms"></ul>
     <h1></h1>
-    <div id="chatWrap">
-      <!--
-        <div class='panel'>
+    <div id="chatWrap" ng-app='app' ng-controller='chat as c'>
+        <div class='panel chatControllerPanel'>
             <a href="#" class='minimizeBtn'>panel name</a>
             <div class='panelContent'>
-                <div class='contentHeader'>
-                    <div class='contentTitle'>panel name</div>
+                <div id='chatControllerHeader'>
+                    <ul class="headerIcons">
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-users" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-sitemap" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-handshake-o" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-window-minimize" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class='contentTitle'>{{c.account}}</div>
                 </div>
-                <div class='contentBody'>
-                    <div style='height: 800px;'></div>
-                </div>
-                <div class='contentInputArea'>
-                    <input type="text" class='contentInput'>
+                <div id='chatControllerContent'>
+                    <div id="loginPanel" ng-if='!c.currentAccount'>
+                        <ul ng-repeat="val in c.users">
+                            <li ng-click='c.login(val.account)'>{{val.name}}</li>
+                        </ul>
+                    </div>
+                    <ul id='chatUserList' ng-if='c.currentAccount'>
+                        <li ng-repeat="val in c.rooms" ng-click='c.openRoom(val.room)'>
+                            <div class='chatThumbImg'>
+                                <img src="images/logo.png" alt="">
+                            </div>
+                            <div class='chatRoomListName'>{{val.room}}</div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-        <div class='panel'>
-        </div>
-
-        -->
+        <div chat-panel="val" ng-repeat="val in c.displayRooms"></div>
     </div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
     <script src="lib/chat.js"></script>
+    <script src='bower_components/angular/angular.min.js'></script>
     <script>
-    $(function() {
-        init();
+    var app = angular.module('app', []);
+    var socketUrl = 'ws://192.168.10.49:3000';
+    app.controller('chat', ['$scope', 'socket', '_', 'globle', function($scope, socket, _, globle) {
+        // $scope.greeting = 'Welcome!';
+        var _self = this;
 
-      
+        _self.users = [];
+        _self.currentAccount = null;
+        _self.displayRooms = [];
+        _self.rooms = [];
+       
+
+
+        _self.login = function(_account) {
+            console.log(_account);
+            socket.emit('login', {
+                account: _account
+            })
+        }
+
+        _self.openRoom = function(_room_id) {
+            console.log(_room_id);
+            var _room = _.find(_self.rooms, {
+                room: _room_id
+            });
+
+
+            if (!_room.initLoad) {
+                socket.emit('getHistoryMsg', {
+                    room: _room_id
+                });
+            }
+
+            if (!_.find(_self.displayRooms, {
+                    room: _room_id
+                })) {
+
+                _self.displayRooms.push(_room);
+            }
+
+        }
+
+        socket.on('getHistoryMsg', function(_d) {
+            var _room = _.find(_self.rooms, {
+                room: _d.room
+            })
+
+
+
+            _room.msg = _d.messages;
+            _room.initLoad = true;
+
+        });
+
+        socket.on('login', function(_d) {
+            _self.currentAccount = globle.account = _d;
+          
+
+
+        })
+
+        socket.on('getRooms', function(_d) {
+            for (var i = 0; i < _d.rooms.length; i++) {
+                _self.rooms.push({
+                    room: _d.rooms[i],
+                    msg: [],
+                    initLoad: false
+                })
+            }
+        })
+
+
+        socket.on('connected', function(_d) {
+            _self.users = _d.users;
+        })
+
+
+    }]);
+
+    app.directive('chatPanel',['globle', function(globle) {
+        return {
+            restrict: "A",
+            replace: true,
+            scope: {
+                chat: "=chatPanel"
+            },
+            link: function(scope, element, attrs) {
+                console.log(scope.chat);
+            },
+
+            templateUrl: "template/chat_view.html"
+        }
+
+    }])
+
+    app.service('globle', function() {
+        
+    })
+
+    app.factory('socket', function($rootScope) {
+        var socket = io.connect(socketUrl);
+        return {
+            on: function(eventName, callback) {
+                socket.on(eventName, function() {
+                    var args = arguments;
+                    $rootScope.$apply(function() {
+                        callback.apply(socket, args);
+                    });
+                });
+            },
+            emit: function(eventName, data, callback) {
+                socket.emit(eventName, data, function() {
+                    var args = arguments;
+                    $rootScope.$apply(function() {
+                        if (callback) {
+                            callback.apply(socket, args);
+                        }
+                    });
+                })
+            }
+        };
+    });
+
+    app.factory('_', ['$window',
+        function($window) {
+            // place lodash include before angular
+            return $window._;
+        }
+    ])
+
+
+    $(function() {
+        // init();
+
+
 
     })
     </script>

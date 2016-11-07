@@ -1,0 +1,36 @@
+<div class='panel chatPanel'>
+    <a href="#" class='minimizeBtn'>panel name</a>
+    <div class='panelContent'>
+        <div class='contentHeader'>
+            <ul class="headerIcons">
+                <li>
+                    <a href="#">
+                        <i class="fa fa-window-minimize" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                    </a>
+                </li>
+            </ul>
+            <div class='contentTitle'>user name</div>
+        </div>
+        <div class='contentBody'>
+
+            <ul class="msgList">
+                <li ng-repeat="val in chat.msg">
+                    <div>{{val.owner}}:</div>
+                    <div>{{val.msg}}</div>
+                </li>
+                <li class="owner">
+                    <div>testddd</div>
+                </li>
+            </ul>
+        </div>
+        <div class='contentInputArea'>
+            <input type="text" class='contentInput'>
+        </div>
+    </div>
+</div>
+

@@ -1,8 +1,6 @@
  * {
      box-sizing: border-box;
  }
-
-
  
  .used {
      color: #999;
@@ -60,8 +58,14 @@
  }
  
  .contentHeader {
-     padding: 9px;
+     padding: 5px;
      background: #eee;
+ }
+ 
+ .contentHeader::after {
+     content: "";
+     display: block;
+     clear: both;
  }
  
  .panelContent {
@@ -83,7 +87,104 @@
  .contentInput {
      width: 100%;
  }
+ 
+ .contentInput.hover {
+     background: #aaa;
+ }
+ 
+ .panel ul {
+     margin: 0;
+     padding: 0;
+     list-style: none;
+ }
+ 
+ #chatControllerHeader {
+     height: 60px;
+     padding: 5px;
+     background: #efefef;
+ }
+ 
+ #chatControllerContent {
+     height: 264px;
+     overflow-y: scroll;
+ }
+ 
+ .headerIcons::after {
+     content: "";
+     display: block;
+     clear: both;
+ }
+ 
+ .headerIcons > li {
+     float: left;
+ }
+ 
+ .chatControllerPanel .headerIcons > li:last-child {
+     float: right;
+ }
+ 
+ .headerIcons a {
+     display: block;
+     width: 25px;
+     height: 25px;
+     color: #000;
+     text-align: center;
+     line-height: 25px;
+     border: 1px solid #999;
+ }
+ 
+ .chatPanel .headerIcons {
+     float: right;
+ }
+ 
+ #chatUserList {}
+ 
+ #chatUserList > li::after {
+     content: "";
+     display: block;
+     clear: both;
+ }
+ 
+ #chatUserList > li {}
+ 
+ #chatUserList > li:hover {
+     background: #aaa;
+ }
+ 
+ #chatUserList .chatThumbImg {
+     float: left;
+ }
+ 
+ #chatUserList .chatRoomListName {
+     margin-left: 40px;
+ }
+ 
+ .chatThumbImg {
+     width: 32px;
+     height: 32px;
+     overflow: hidden;
+     background: #FFF;
+ }
+ 
+ .chatThumbImg > img {
+     max-width: 100%;
+     max-height: 100%;
+     display: block;
+     margin: 0 auto;
+ }
+ 
+ .msgList >li::after {
+     content: "";
+     display: block;
+     clear: both;
+ }
+ 
+ .msgList > li > div {
+     float: left;
+ }
+ 
 
-  .contentInput.hover{
-    background: #aaa;
-  }
+ .msgList > li.owner > div {
+     float: right;
+ }
+ 
