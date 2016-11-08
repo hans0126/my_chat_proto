@@ -15,7 +15,7 @@ var accounts = ['hans'];
 var rooms = [];
 rooms['room1'] = ['08073', '08072'];
 rooms['room2'] = ['08073', '08071'];
-rooms['room3'] = ['08073', '08071','08072'];
+rooms['room3'] = ['08073', '08071', '08072'];
 
 //modelMsg.mymy();
 
@@ -24,8 +24,8 @@ function myChat(io) {
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
         console.log(clientIp);
-       	
-       
+
+
 
         socket.emit('connected', { users: users });
 
@@ -53,7 +53,7 @@ function myChat(io) {
                 }
             }
 
-            socket.broadcast.emit('attention',  _currentUser.account + ' online');
+            socket.broadcast.emit('attention', _currentUser.account + ' online');
 
             socket.emit('getRooms', { rooms: _userInRoom });
 
@@ -82,7 +82,7 @@ function myChat(io) {
                 createMsgAndBrodcast(_d.owner, _d.room, _d.text);
             })
 
-            socket.on('readMessage', function(_d) {            
+            socket.on('readMessage', function(_d) {
 
                 modelMsg.findOneAndUpdate({
                         room: _d.room,
@@ -102,8 +102,10 @@ function myChat(io) {
                         }
 
                     }, { new: true },
-                    function(err, _p) {                       	
-                       	io.in(_d.room).emit('getReaded', _p);
+                    function(err, _p) {
+                        if (_p) {
+                            io.in(_d.room).emit('readMessage', _p);
+                        }
                     })
 
             })
@@ -115,56 +117,57 @@ function myChat(io) {
 
             //get history msg
             socket.on('getHistoryMsg', function(_d) {
-            	//console.log("S");
+                //console.log("S");
                 var output_msg = [];
-
                 modelMsg.find({
                     room: _d.room
-                }, function(err, _re) {
+                }).sort({ create_date: -1 }).limit(20).exec(function(err, _re) {
+                    _re.reverse();
                     for (var i = 0; i < _re.length; i++) {
                         output_msg.push(_re[i]);
                     }
-                   
 
                     socket.emit('getHistoryMsg', { messages: output_msg, room: _d.room });
-                })              
+                })
             })
 
-            socket.on('getUnReadMessage',function(_d){
-            	
-            	 modelMsg.find({
-                        room: _d.room,                        
-                        users: {
-                            $elemMatch: {
-                                user: _d.account,
-                                read_time: null
-                            }
+            socket.on('getUnReadMessage', function(_d) {
+
+                modelMsg.find({
+                    room: _d.room,
+                    users: {
+                        $elemMatch: {
+                            user: _d.account,
+                            read_time: null
                         }
-                    },function(err,_re){
-                    	console.log(_re);
-                    	socket.emit('getUnReadMessage',{room:_d.room,
-                    									msg:_re});
-                    })
+                    }
+                }, function(err, _re) {
+                    console.log(_re);
+                    socket.emit('getUnReadMessage', {
+                        room: _d.room,
+                        msg: _re
+                    });
+                })
 
 
             })
 
 
-            socket.on('getUnReadMessageCount',function(_d){
-            	 modelMsg.find({
-                        room: _d.room,                        
-                        users: {
-                            $elemMatch: {
-                                user: _d.account,
-                                read_time: null
-                            }
+            socket.on('getUnReadMessageCount', function(_d) {
+                modelMsg.find({
+                    room: _d.room,
+                    users: {
+                        $elemMatch: {
+                            user: _d.account,
+                            read_time: null
                         }
-                    },function(err,_re){                    	
-                    	socket.emit('getUnReadMessageCount',{
-                    		room:_d.room,
-                    		count:_re.length
-                    	});
-                    })
+                    }
+                }, function(err, _re) {
+                    socket.emit('getUnReadMessageCount', {
+                        room: _d.room,
+                        count: _re.length
+                    });
+                })
             })
 
             //upload file
@@ -198,7 +201,7 @@ function myChat(io) {
             users: [],
             create_date: currentDate(),
             id: randomstring.generate()
-        }      
+        }
 
         for (var i = 0; i < rooms[_room].length; i++) {
             _m.users.push({

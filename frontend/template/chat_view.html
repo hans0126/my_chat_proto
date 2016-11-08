@@ -1,5 +1,5 @@
 <div class='panel chatPanel'>
-    <a href="#" class='minimizeBtn'>panel name</a>
+    <a href="#" class='minimizeBtn'>{{chat.room}}</a>
     <div class='panelContent'>
         <div class='contentHeader'>
             <ul class="headerIcons">
@@ -14,22 +14,15 @@
                     </a>
                 </li>
             </ul>
-            <div class='contentTitle'>user name</div>
+            <div class='contentTitle'>{{chat.room}}</div>
         </div>
         <div class='contentBody'>
-
-            <ul class="msgList">
-                <li ng-repeat="val in chat.msg">
-                    <div>{{val.owner}}:</div>
-                    <div>{{val.msg}}</div>
-                </li>
-                <li class="owner">
-                    <div>testddd</div>
-                </li>
+            <ul class="msgList" >
+                <li single-msg="val" ng-repeat="val in chat.msg"></li>
             </ul>
         </div>
         <div class='contentInputArea'>
-            <input type="text" class='contentInput'>
+            <input type="text" class='contentInput' my-enter='sendMsg()' ng-model='userInput'>
         </div>
     </div>
 </div>
