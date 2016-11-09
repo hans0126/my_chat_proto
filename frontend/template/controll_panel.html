@@ -28,11 +28,11 @@
                 </ul>
             </div>
             <ul id='chatUserList' ng-if='p.currentAccount'>
-                <li ng-repeat="val in p.rooms" ng-click='p.openRoom(val.room)'>
+                <li ng-repeat="val in p.rooms" ng-click='p.openRoom(val.room_id)'>
                     <div class='chatThumbImg'>
                         <img src="images/logo.png" alt="">
                     </div>
-                    <div class='chatRoomListName'>{{val.room}}({{val.unReadCount}})</div>
+                    <div class='chatRoomListName'>{{val.room_name}}({{val.unReadCount}})</div>
                 </li>
             </ul>
         </div>

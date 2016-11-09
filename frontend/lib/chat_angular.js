@@ -22,6 +22,43 @@
            class: null
        }
 
+       var chatObj = {
+           room_id: null,
+           type: null,
+           room_name: null,
+           msg: [],
+           initLoad: false,
+           unReadCount: 0,
+           minimize: false,
+           minimizeAction: function() {
+               this.minimize = !this.minimize;
+               if (this.minimize) {
+                   this.class = 'onMinimize';
+               } else {
+                   this.class = null;
+                   var _room = this.room;
+                   if (this.unReadCount > 0) {
+                       socket.emit('getUnReadMessage', {
+                           account: globle.account.account,
+                           room_id: _room.room_id
+                       })
+                   }
+
+                   this.unReadCount = 0;
+
+               }
+           },
+           class: null,
+           closePanel: function() {
+               var _idx = _.findIndex(_self.displayRooms, {
+                   room: this.room
+               });
+
+               _self.displayRooms.splice(_idx, 1);
+           }
+
+       }
+
        _self.login = function(_account) {
            // console.log(_account);
            socket.emit('login', {
@@ -30,21 +67,20 @@
        }
 
        _self.openRoom = function(_room_id) {
-           //console.log(_room_id);
            var _room = _.find(_self.rooms, {
-               room: _room_id
+               room_id: _room_id
            });
 
            _room.unReadCount = 0;
 
            if (!_room.initLoad) {
                socket.emit('getHistoryMsg', {
-                   room: _room_id
+                   room_id: _room_id
                });
            }
 
            if (!_.find(_self.displayRooms, {
-                   room: _room_id
+                   room_id: _room_id
                })) {
 
                _self.displayRooms.push(_room);
@@ -53,9 +89,12 @@
        }
 
        socket.on('getHistoryMsg', function(_d) {
+
            var _room = _.find(_self.rooms, {
-               room: _d.room
+               room_id: _d.room_id
            })
+
+
 
            _room.msg = _d.messages;
            _room.initLoad = true;
@@ -67,67 +106,39 @@
        })
 
        socket.on('getRooms', function(_d) {
+           _.forEach(_d.rooms, function(_v) {
 
-           for (var i = 0; i < _d.rooms.length; i++) {
-               _self.rooms.push({
-                   room: _d.rooms[i],
-                   msg: [],
-                   initLoad: false,
-                   unReadCount: 0,
-                   minimize: false,
-                   minimizeAction: function() {
+               var _chatObj = angular.copy(chatObj);
 
-                       this.minimize = !this.minimize;
-                       if (this.minimize) {
-                           this.class = 'onMinimize';
-                       } else {
-                           this.class = null;
-                           var _room = this.room;
-                           if (this.unReadCount > 0) {
-                               socket.emit('getUnReadMessage', {
-                                   account: globle.account.account,
-                                   room: _room
-                               })
-                           }
+               _chatObj.room_id = _v.room_id;
+               _chatObj.type = _v.type;
+               _chatObj.room_name = _v.room_name;
 
-                           this.unReadCount = 0;
-
-                       }
-                   },
-                   class: null,
-                   closePanel:function(){
-                       var _idx = _.findIndex(_self.displayRooms,{
-                        room:this.room
-                       });
-
-                       _self.displayRooms.splice(_idx,1);
-                   }
-
-               })
+               _self.rooms.push(_chatObj);
 
                socket.emit('getUnReadMessageCount', {
                    account: globle.account.account,
-                   room: _d.rooms[i]
+                   room_id: _v.room_id
                });
-           }
+
+           })
        })
 
-       socket.on('getUnReadMessage', function(_d) {          
+       socket.on('getUnReadMessage', function(_d) {
            _room = _.find(_self.rooms, {
-               room: _d.room
+               room_id: _d.room_id
            });
 
            _.forEach(_d.msg, function(_v) {
-                _room.msg.push(_v);
+               _room.msg.push(_v);
            })
 
        })
 
 
        socket.on('getUnReadMessageCount', function(_d) {
-           // console.log(_d);
            _room = _.find(_self.rooms, {
-               room: _d.room
+               room_id: _d.room_id
            });
 
            _room.unReadCount = _d.count;
@@ -135,14 +146,13 @@
 
 
        socket.on('connected', function(_d) {
-
            _self.users = _d.users;
        })
 
        socket.on('getMessage', function(_d) {
 
            _re = _.find(_self.displayRooms, {
-               room: _d.room
+               room_id: _d.room_id
            });
 
            if (_re && !_re.minimize) {
@@ -150,15 +160,14 @@
            } else {
                socket.emit('getUnReadMessageCount', {
                    account: globle.account.account,
-                   room: _d.room
+                   room_id: _d.room_id
                });
            }
        })
 
        socket.on('readMessage', function(_d) {
-
            _room = _.find(_self.rooms, {
-               room: _d.room
+               room_id: _d.room_id
            });
            _msg = _.find(_room.msg, {
                id: _d.id
@@ -202,13 +211,14 @@
                chat: "=chatPanel"
            },
            link: function(scope, element, attrs) {
+               var contentBody = element.find('.contentBody');
                scope.userInput = null;
                scope.sendEvents = {};
                scope.sendEvents.sendMsg = function() {
 
                    if (scope.userInput) {
                        socket.emit('sendMessage', {
-                           room: scope.chat.room,
+                           room_id: scope.chat.room_id,
                            text: scope.userInput,
                            owner: globle.account.account
                        })
@@ -219,21 +229,30 @@
 
                scope.sendEvents.uploadFile = function(_file) {
 
-                   socket.upload(_file, {
-                       types: [
-                           'image/png',
-                           'image/jpeg',
-                           'image/pjpeg'
-                       ],
-                       to: 'file',
-                       data: {
-                           room: scope.chat.room,
-                           owner: globle.account.account
-                       }
+                       socket.upload(_file, {
+                           types: [
+                               'image/png',
+                               'image/jpeg',
+                               'image/pjpeg'
+                           ],
+                           to: 'file',
+                           data: {
+                               room: scope.chat.room_id,
+                               owner: globle.account.account
+                           }
+                       });
+
+
+                   }
+                   /*
+                   contentBody.bind('scroll', function() {
+                       console.log('in scroll');
+                       console.log(contentBody[0].scrollTop);
+                       console.log(contentBody[0].scrollHeight);
+                       
                    });
+                    */
 
-
-               }
            },
 
            templateUrl: "template/chat_view.html"
@@ -287,7 +306,7 @@
                    socket.emit('readMessage', {
                        id: scope.msg.id,
                        account: globle.account.account,
-                       room: scope.msg.room
+                       room_id: scope.msg.room_id
                    });
 
                    var sHeight = element.parent()[0].scrollHeight;
@@ -302,19 +321,41 @@
    app.directive('chatInput', ['socket', 'globle', function(socket, globle) {
 
        return {
+           require: 'ngModel',
            restrict: "A",
            scope: {
                sendEvents: "=chatInput"
            },
-           link: function(scope, element, attrs) {
+           link: function(scope, element, attrs, ctrl) {
 
                element.bind("keydown", function(event) {
+
+                   scope.$apply(function() {
+                       ctrl.$setViewValue(element.html());
+                   });
+
                    if (event.which === 13) {
                        event.preventDefault();
                        event.stopPropagation();
-                       scope.sendEvents.sendMsg();
+                       //scope.sendEvents.sendMsg();
+
+                       if (event.shiftKey) {
+                           console.log("sss");
+                       } else {
+                           scope.sendEvents.sendMsg();
+
+
+                       }
 
                    }
+
+                   ctrl.$render = function() {
+                       element.html(ctrl.$viewValue);
+                   };
+
+                   // load init value from DOM
+                   ctrl.$setViewValue(element.html())
+
                });
 
                element.bind("dragover", function(event) {

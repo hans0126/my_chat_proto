@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 
 var msgSchema = mongoose.Schema({
     owner: String,
-    room: String,
+    room_id: String,
     msg: String,
     users: [],
     create_date: Date,

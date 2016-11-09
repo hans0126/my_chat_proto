@@ -1,6 +1,6 @@
 <div class='panel chatPanel' ng-class='chat.class'>
     <div class='minimizeBtn'>
-        <div ng-click='chat.minimizeAction()'>{{chat.room}}</div>
+        <div ng-click='chat.minimizeAction()'>{{chat.room_name}}</div>
         <div class='unreadBox' ng-if="chat.unReadCount>0">{{chat.unReadCount}}</div>
         <div ng-click='chat.closePanel()'>
             <i class="fa fa-times" aria-hidden="true"></i>
@@ -20,7 +20,7 @@
                     </div>
                 </li>
             </ul>
-            <div class='contentTitle'>{{chat.room}}</div>
+            <div class='contentTitle'>{{chat.room_name}}</div>
         </div>
         <div class='contentBody'>
             <ul class="msgList">
@@ -28,7 +28,10 @@
             </ul>
         </div>
         <div class='contentInputArea'>
-            <input type="text" class='contentInput' chat-input='sendEvents' ng-model='userInput'>
+        <!--
+            <textarea type="text" class='contentInput' chat-input='sendEvents' ng-model='userInput'></textarea>
+            -->
+            <div contenteditable="true" class="writeBox" chat-input='sendEvents' ng-model='userInput'></div>
         </div>
     </div>
 </div>
