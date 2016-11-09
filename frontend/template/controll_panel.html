@@ -1,0 +1,40 @@
+<div class='panel chatControllerPanel' ng-class='p.controllPanel.class'>
+    <div href="#" class='minimizeBtn' ng-click='p.controllPanel.minimizeAction()'>controller panel</div>
+    <div class='panelContent' ng-show="!p.controllPanel.minimize">
+        <div id='chatControllerHeader'>
+            <ul class="headerIcons">
+                <li>
+                    <div>
+                        <i class="fa fa-users" aria-hidden="true"></i>
+                    </div>
+                </li>
+                <li>
+                    <div >
+                        <i class="fa fa-handshake-o" aria-hidden="true"></i>
+                    </div>
+                </li>
+                <li>
+                    <div ng-click='p.controllPanel.minimizeAction()'>
+                        <i class="fa fa-window-minimize" aria-hidden="true"></i>
+                    </div>
+                </li>
+            </ul>
+            <div class='contentTitle'>{{p.account}}</div>
+        </div>
+        <div id='chatControllerContent'>
+            <div id="loginPanel" ng-if='!p.currentAccount'>
+                <ul ng-repeat="val in p.users">
+                    <li ng-click='p.login(val.account)'>{{val.name}}</li>
+                </ul>
+            </div>
+            <ul id='chatUserList' ng-if='p.currentAccount'>
+                <li ng-repeat="val in p.rooms" ng-click='p.openRoom(val.room)'>
+                    <div class='chatThumbImg'>
+                        <img src="images/logo.png" alt="">
+                    </div>
+                    <div class='chatRoomListName'>{{val.room}}({{val.unReadCount}})</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

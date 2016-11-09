@@ -1,29 +1,34 @@
-<div class='panel chatPanel'>
-    <a href="#" class='minimizeBtn'>{{chat.room}}</a>
-    <div class='panelContent'>
+<div class='panel chatPanel' ng-class='chat.class'>
+    <div class='minimizeBtn'>
+        <div ng-click='chat.minimizeAction()'>{{chat.room}}</div>
+        <div class='unreadBox' ng-if="chat.unReadCount>0">{{chat.unReadCount}}</div>
+        <div ng-click='chat.closePanel()'>
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div class='panelContent' ng-show='!chat.minimize'>
         <div class='contentHeader'>
             <ul class="headerIcons">
                 <li>
-                    <a href="#">
+                    <div ng-click='chat.minimizeAction()'>
                         <i class="fa fa-window-minimize" aria-hidden="true"></i>
-                    </a>
+                    </div>
                 </li>
                 <li>
-                    <a href="#">
+                    <div ng-click='chat.closePanel()'>
                         <i class="fa fa-times" aria-hidden="true"></i>
-                    </a>
+                    </div>
                 </li>
             </ul>
             <div class='contentTitle'>{{chat.room}}</div>
         </div>
         <div class='contentBody'>
-            <ul class="msgList" >
+            <ul class="msgList">
                 <li single-msg="val" ng-repeat="val in chat.msg"></li>
             </ul>
         </div>
         <div class='contentInputArea'>
-            <input type="text" class='contentInput' my-enter='sendMsg()' ng-model='userInput'>
+            <input type="text" class='contentInput' chat-input='sendEvents' ng-model='userInput'>
         </div>
     </div>
 </div>
-

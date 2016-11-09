@@ -48,6 +48,10 @@
      font-size: 13px;
  }
  
+ .panel.onMinimize {
+     width: 100px;
+ }
+ 
  .minimizeBtn {
      position: absolute;
      bottom: 0;
@@ -55,6 +59,15 @@
      padding: 9px;
      background: #eee;
      border: 1px solid #aaa;
+     width: 100px;
+ }
+ 
+ .unreadBox {
+     position: absolute;
+     border: 1px solid #F00;
+     background: #aaa;
+     top: 0;
+     left: 0;
  }
  
  .contentHeader {
@@ -123,7 +136,7 @@
      float: right;
  }
  
- .headerIcons a {
+ .headerIcons div {
      display: block;
      width: 25px;
      height: 25px;
@@ -183,8 +196,6 @@
      float: left;
  }
  
-
  .msgList > li.owner > div {
      float: right;
  }
- 

@@ -8,9 +8,6 @@ var users = [{ name: "hans", account: "08073", connect_id: null },
     { name: "eric", account: "08071", connect_id: null }
 ];
 
-var messages = [];
-
-var accounts = ['hans'];
 
 var rooms = [];
 rooms['room1'] = ['08073', '08072'];
@@ -142,7 +139,7 @@ function myChat(io) {
                         }
                     }
                 }, function(err, _re) {
-                    console.log(_re);
+                    //console.log(_re);
                     socket.emit('getUnReadMessage', {
                         room: _d.room,
                         msg: _re
