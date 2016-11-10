@@ -43,6 +43,9 @@ function myChat(io) {
 
         socket.emit('connected', { users: users });
 
+      
+
+
         socket.on('login', function(_d) {
             var _currentUser = null;
             var _userInRoom = [];
@@ -91,11 +94,12 @@ function myChat(io) {
 
 
             socket.on('sendMessage', function(_d) {
+
                 createMsgAndBrodcast(_d.owner, _d.room_id, _d.text);
             })
 
             socket.on('readMessage', function(_d) {
-               
+
                 modelMsg.findOneAndUpdate({
                         room_id: _d.room_id,
                         id: _d.id,
@@ -115,7 +119,7 @@ function myChat(io) {
 
                     }, { new: true },
                     function(err, _p) {
-                        
+
                         if (_p) {
                             io.in(_d.room_id).emit('readMessage', _p);
                         }
@@ -239,7 +243,7 @@ function myChat(io) {
 
         _msgMongo.save().then(function(_p) {
             //console.log(_p);
-            io.in(_room_id).emit('getMessage',_p);
+            io.in(_room_id).emit('getMessage', _p);
         })
 
     }

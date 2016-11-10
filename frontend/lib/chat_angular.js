@@ -59,6 +59,7 @@
 
        }
 
+
        _self.login = function(_account) {
            // console.log(_account);
            socket.emit('login', {
@@ -67,6 +68,7 @@
        }
 
        _self.openRoom = function(_room_id) {
+           console.log(_self.rooms);
            var _room = _.find(_self.rooms, {
                room_id: _room_id
            });
@@ -102,6 +104,7 @@
        });
 
        socket.on('login', function(_d) {
+
            _self.currentAccount = globle.account = _d;
        })
 
@@ -217,6 +220,7 @@
                scope.sendEvents.sendMsg = function() {
 
                    if (scope.userInput) {
+
                        socket.emit('sendMessage', {
                            room_id: scope.chat.room_id,
                            text: scope.userInput,
@@ -252,6 +256,8 @@
                        
                    });
                     */
+
+
 
            },
 
@@ -319,7 +325,12 @@
    ]);
 
    app.directive('chatInput', ['socket', 'globle', function(socket, globle) {
+       /*
+          var range = document.createRange();
+          var sel = window.getSelection();
 
+          console.log(sel);
+       */
        return {
            require: 'ngModel',
            restrict: "A",
@@ -329,32 +340,30 @@
            link: function(scope, element, attrs, ctrl) {
 
                element.bind("keydown", function(event) {
+                   //  console.log(element.html())
+
 
                    scope.$apply(function() {
                        ctrl.$setViewValue(element.html());
                    });
 
-                   if (event.which === 13) {
-                       event.preventDefault();
-                       event.stopPropagation();
-                       //scope.sendEvents.sendMsg();
-
-                       if (event.shiftKey) {
-                           console.log("sss");
-                       } else {
-                           scope.sendEvents.sendMsg();
-
-
-                       }
-
-                   }
-
+                   //back default value; was null
                    ctrl.$render = function() {
                        element.html(ctrl.$viewValue);
                    };
 
-                   // load init value from DOM
-                   ctrl.$setViewValue(element.html())
+                   if (event.which === 13) {
+                       event.preventDefault();
+                       event.stopPropagation();
+
+
+                       if (event.shiftKey) {
+
+                       } else {
+                           scope.sendEvents.sendMsg();
+                       }
+
+                   }
 
                });
 
