@@ -1,0 +1,18 @@
+ * {
+     box-sizing: border-box;
+ }
+ 
+ html,
+ body {
+     margin: 0;
+     padding: 0;
+ }
+
+
+#debug {
+     border: 1px solid #666;
+     position: fixed;
+     top: 0;
+     right: 0;
+     width:200px;
+}

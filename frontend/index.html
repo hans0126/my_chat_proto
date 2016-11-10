@@ -5,20 +5,129 @@
     <meta charset="UTF-8">
     <title>Document</title>
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/default.css">
+    <link rel="stylesheet" href="css/callcenter.css">
 </head>
 
-<body> 
-    <div id="chatWrap" ng-app='app' ng-controller='chat as c'>
-        <div controll-panel='c'></div>
-        <div chat-panel="val" ng-repeat="val in c.displayRooms"></div>
+<body>
+    <div ng-app='app' ng-controller='main'>
+        <div id="debug">
+            <div>
+                {{account}}
+            </div>
+            <ul>
+                <li ng-repeat="val in customerService">
+                    {{val.name}}
+                    <span ng-if='!val.connect_id'>離線</span>
+                </li>
+            </ul>
+        </div>
+        <div ng-view></div>
     </div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/lodash/lodash.js"></script>
     <script src='bower_components/angular/angular.min.js'></script>
-    <script src='lib/chat_angular.js'></script>   
+    <script src='bower_components/angular-route/angular-route.min.js'></script>
+    <script>
+    var app = angular.module('app', ['ngRoute']);
+    var socketUrl = 'ws://192.168.10.49:3000';
+    app.controller('main', ['$scope',
+        '$route',
+        '$routeParams',
+        '$location',
+        'socket',
+        function($scope, $route, $routeParams, $location, socket) {
+
+            $scope.account = {};
+
+            socket.on('connected', function(_d) {
+                $scope.customerService = _d.users
+            })
+
+            socket.on('customerServiceList', function(_d) {
+                $scope.customerService = _d.users
+            })
+        }
+    ])
+
+    app.controller('login', ['$scope',
+        'socket',
+        '$location',
+        function($scope, socket, $location) {
+
+            var _self = this;
+
+            _self.login = function(val) {
+                socket.emit('customerServiceLogin', {
+                    account: val.account
+                });
+            }
+
+            socket.on('customerServiceLogin', function(_d) {
+                angular.extend($scope.account, _d);
+                $location.path('/landing');
+            });
+
+
+        }
+    ])
+
+    app.controller('landing', [function() {
+        console.log("B");
+    }])
+
+    app.config(function($routeProvider, $locationProvider) {
+        $routeProvider
+            .when('/', {
+                templateUrl: 'template/backend_login.html',
+                controller: 'login',
+                controllerAs: 'l'
+            })
+            .when('/landing', {
+                templateUrl: 'template/backend_landing.html',
+                controller: 'landing'
+            })
+            .otherwise({
+                redirectTo: '/'
+            });
+
+        // configure html5 to get links working on jsfiddle
+        //$locationProvider.html5Mode(true);
+    });
+
+    app.factory('socket', function($rootScope) {
+        var socket = io.connect(socketUrl);
+        var socketIOFile = new SocketIOFileClient(socket);
+        return {
+            on: function(eventName, callback) {
+                socket.on(eventName, function() {
+                    var args = arguments;
+                    $rootScope.$apply(function() {
+                        callback.apply(socket, args);
+                    });
+                });
+            },
+            emit: function(eventName, data, callback) {
+                socket.emit(eventName, data, function() {
+                    var args = arguments;
+                    $rootScope.$apply(function() {
+                        if (callback) {
+                            callback.apply(socket, args);
+                        }
+                    });
+                })
+            },
+            upload: function(file, options, callback) {
+                socketIOFile.upload(file, options);
+            }
+        };
+    });
+
+    app.factory('gValue', function() {
+        return {}
+    })
+    </script>
 </body>
 
 </html>

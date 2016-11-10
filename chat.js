@@ -4,9 +4,11 @@ var fs = require('fs');
 var _ = require('lodash');
 var modelMsg = require('./models/msg');
 
-var users = [{ name: "hans", account: "08073", connect_id: null },
-    { name: "ben", account: "08072", connect_id: null },
-    { name: "eric", account: "08071", connect_id: null }
+//type 0:客人 1:客服
+
+var users = [{ name: "台北客服", account: "08073", connect_id: null, type: 1 },
+    { name: "桃園客服", account: "08072", connect_id: null, type: 1 },
+    { name: "台中客服", account: "08071", connect_id: null, type: 1 }
 ];
 
 
@@ -33,6 +35,9 @@ rooms.push({
     type: 1
 })
 
+
+
+
 //modelMsg.mymy();
 
 function myChat(io) {
@@ -43,7 +48,45 @@ function myChat(io) {
 
         socket.emit('connected', { users: users });
 
-      
+        //customerService process
+        socket.on('customerServiceLogin', function(_d) {
+            //clear past user account
+            var pastUser = _.find(users, { connect_id: socket.id });
+            if (pastUser) {
+                pastUser.connect_id = null;
+            }
+
+
+
+            var _currentUser = _.find(users, { account: _d.account });
+            _currentUser.connect_id = socket.id;
+            //return current user detail
+            socket.emit('customerServiceLogin', _currentUser);
+            io.emit('customerServiceList', { users: _.filter(users,{type:1}) });
+
+
+
+            socket.on('disconnect', function() {
+                console.log("A");
+                _currentUser.connect_id = null;
+                io.emit('customerServiceList', { users: _.filter(users,{type:1}) });
+
+                /* var _disconnectUser;
+                 _.find()
+
+                 for (var i = 0; i < users.length; i++) {
+                     if (users[i].connect_id == socket.id) {
+                         users[i].connect_id = null;
+                         _disconnectUser = users[i];
+                         io.emit('updateUsersList', { users: users });
+                         break;
+                     }
+                 }*/
+            });
+
+
+        })
+
 
 
         socket.on('login', function(_d) {
