@@ -11,7 +11,9 @@
 <body> 
     <div id="chatWrap" ng-app='app' ng-controller='chat as c'>
         <div controll-panel='c'></div>
-        <div chat-panel="val" ng-repeat="val in c.displayRooms"></div>
+        <div chat-panel="val" ng-repeat="val in displayRooms"></div>
+
+        <div debug class='debug'>{{users}}{{controllPanel}}</div>
     </div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>

@@ -9,21 +9,35 @@ var users = [{ name: "hans", account: "08073", connect_id: null },
     { name: "eric", account: "08071", connect_id: null }
 ];
 
-
 var rooms = [];
+//make room best 
+var aa = ["a", "b", "c"],
+    bb = aa,
+    v = 0;
+
+for (var i = 0; i < aa.length; i++) {
+
+    for (var j = 1; j < bb.length; j++) {
+        if (j + v < bb.length) {
+            console.log(aa[i] + bb[j + v]);
+        }
+    }
+    v++
+
+}
 
 rooms.push({
     room_id: 'room1',
     room_name: '08073_08072',
     users: ['08073', '08072'],
-    type: 0
+    type: 1
 })
 
 rooms.push({
     room_id: 'room2',
     room_name: '08071_08073',
     users: ['08073', '08071'],
-    type: 0
+    type: 1
 })
 
 rooms.push({
@@ -43,9 +57,6 @@ function myChat(io) {
 
         socket.emit('connected', { users: users });
 
-      
-
-
         socket.on('login', function(_d) {
             var _currentUser = null;
             var _userInRoom = [];
@@ -63,8 +74,42 @@ function myChat(io) {
                     _userInRoom.push(_v);
                     returnRoomUsers(_v.room_id);
                 }
+            })
+
+
+            _.forEach(users, function(_v) {
+
+                if (_v.account != _currentUser.account) {
+                    var _tempArray = [_currentUser.account, _v.account];
+
+                    _tempArray.sort(function(a, b) {
+                        return a > b
+                    });
+
+                    var _room_id = `${_tempArray[0]}_${_tempArray[1]}`;
+                    socket.join(_room_id);
+
+                    var _re = _.find(rooms, { room_id: _room_id });
+                    // console.log(_re);
+
+                    if (!_re) {
+                        rooms.push({
+                            room_id: _room_id,
+                            room_name: null,
+                            users: _tempArray,
+                            type: 0
+                        })
+                    }
+                    /*
+                    if (!_.find(rooms, { account: _room_id })) {
+                       
+                    }*/
+                }
+
 
             })
+
+            console.log(rooms);
 
             socket.broadcast.emit('attention', _currentUser.account + ' online');
 
