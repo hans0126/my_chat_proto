@@ -5,56 +5,35 @@
        $scope.greeting = 'Welcome!';
        $scope.users = [];
        $scope.account = {};
-       $scope.displayRooms = [];
-       $scope.rooms = [];
-       $scope.rosterRooms = [];
+       $scope.displayRooms = []; //active rooms
+       $scope.rooms = []; // root rooms
+       $scope.rosterRooms = []; // unit rooms
        $scope.projectRooms = [];
        $scope.companyRooms = [];
+       $scope.emotions = [];
 
-       socket.on('connected', function(_d) {
-           _self.users = _d.users;
-           angular.extend($scope.users, _d.users);
+
+       /*
+        
+      rooms -
+            |- rosterRooms
+                    |- rosterRoomsD ----|
+            |- projectRooms             |---> displayRooms
+                    |- projectRoomsD ---|
+
+       */
+
+
+       socket.on('emotions', function(_d) {
+           angular.extend($scope.emotions, _d);
+
+
        })
 
+       socket.on('connected', function(_d) {
 
-       _self.users = [];
-       _self.currentAccount = null;
-       _self.displayRooms = [];
-       _self.rooms = [];
-
-
-
-
-
-       _self.login = function(_account) {
-           // console.log(_account);
-           socket.emit('login', {
-               account: _account
-           })
-       }
-
-       _self.openRoom = function(_room_id) {
-           console.log(_self.rooms);
-           var _room = _.find(_self.rooms, {
-               room_id: _room_id
-           });
-
-           _room.unReadCount = 0;
-
-           if (!_room.initLoad) {
-               socket.emit('getHistoryMsg', {
-                   room_id: _room_id
-               });
-           }
-
-           if (!_.find(_self.displayRooms, {
-                   room_id: _room_id
-               })) {
-
-               _self.displayRooms.push(_room);
-           }
-
-       }
+           angular.extend($scope.users, _d.users);
+       })
 
        socket.on('getHistoryMsg', function(_d) {
 
@@ -94,9 +73,6 @@
            _room.unReadCount = _d.count;
        })
 
-
-
-
        socket.on('getMessage', function(_d) {
 
            _re = _.find($scope.displayRooms, {
@@ -134,52 +110,55 @@
 
    app.directive('controllPanel', ['global', 'socket', function(global, socket) {
 
-       var chatObj = {
-           account: null,
-           room_id: null,
-           type: null,
-           room_name: null,
-           msg: [],
-           initLoad: false,
-           unReadCount: 0,
-           minimize: false,
-           minimizeAction: function() {
-               this.minimize = !this.minimize;
-               if (this.minimize) {
-                   this.class = 'onMinimize';
-               } else {
-                   this.class = null;
-                   var _room = this.room;
-                   if (this.unReadCount > 0) {
-                       socket.emit('getUnReadMessage', {
-                           account: scope.account.account,
-                           room_id: _room.room_id
-                       })
-                   }
-
-                   this.unReadCount = 0;
-
-               }
-           },
-           class: null,
-           closePanel: function() {
-               var _idx = _.findIndex(scope.displayRooms, {
-                   room: this.room
-               });
-
-               scope.displayRooms.splice(_idx, 1);
-           }
-
-       }
-
-
-
        return {
            restrict: "A",
            replace: true,
            templateUrl: "template/controll_panel.html",
            scope: true,
            link: function(scope, element, attrs) {
+
+               var chatObj = {
+                   account: null,
+                   room_id: null,
+                   type: null,
+                   room_name: null,
+                   msg: [],
+                   initLoad: false,
+                   unReadCount: 0,
+                   minimize: false,
+                   minimizeAction: function() {
+                       this.minimize = !this.minimize;
+                       if (this.minimize) {
+                           this.class = 'onMinimize';
+                       } else {
+                           this.class = null;
+                           var _room = this.room;
+                           if (this.unReadCount > 0) {
+                               socket.emit('getUnReadMessage', {
+                                   account: scope.account.account,
+                                   room_id: _room.room_id
+                               })
+                           }
+
+                           this.unReadCount = 0;
+                       }
+                   },
+                   class: null,
+                   closePanel: function() {
+                       var _idx = _.findIndex(scope.displayRooms, {
+                           room_id: this.room_id
+                       });
+
+                       scope.displayRooms.splice(_idx, 1);
+                   }
+               }
+
+               scope.tab = "0";
+
+               scope.changeTab = function(_val) {
+                   scope.tab = _val;
+
+               }
 
                scope.controllPanel = {
                    minimize: false,
@@ -212,7 +191,6 @@
                    _room.type = 0;
                    _room.room_name = _v.name;
                    scope.displayRooms.push(_room);
-
                }
 
                scope.openRoom = function(_room_id) {
@@ -239,15 +217,12 @@
 
                socket.on('getRooms', function(_d) {
 
-
-
                    _.forEach(_d.rooms, function(_v) {
-
-
                        var _chatObj = angular.copy(chatObj);
 
                        _chatObj.room_id = _v.room_id;
                        _chatObj.type = _v.type;
+
                        _chatObj.account = scope.account.account;
 
                        switch (_chatObj.type) {
@@ -287,13 +262,11 @@
                        });
 
                    })
+
+                   // set unit user list
+                   scope.rosterRoomsD = scope.rosterRooms;
+                   scope.projectRoomsD = scope.projectRooms;
                })
-
-
-
-
-
-
            }
        }
    }])
@@ -305,12 +278,30 @@
            restrict: "A",
            replace: true,
            scope: {
-               chat: "=chatPanel"
+               chat: "=chatPanel",
+               emotions: "=chatEmotions"
            },
            link: function(scope, element, attrs) {
                var contentBody = element.find('.contentBody');
                scope.userInput = null;
                scope.sendEvents = {};
+               scope.emotionShow = false;
+
+               scope.triggerEmotionPanel = function() {
+                   scope.emotionShow = !scope.emotionShow;
+               }
+
+               scope.sendEmotion = function(_v) {
+
+                   socket.emit('sendMessage', {
+                       room_id: scope.chat.room_id,
+                       text: "[emotion:" + _v.filename + "]",
+                       owner: scope.chat.account
+                   })
+
+                   scope.emotionShow = false;
+               }
+
                scope.sendEvents.sendMsg = function() {
 
                    if (scope.userInput) {
@@ -335,8 +326,8 @@
                            ],
                            to: 'file',
                            data: {
-                               room: scope.chat.room_id,
-                               owner: global.account.account
+                               room_id: scope.chat.room_id,
+                               owner: scope.chat.account
                            }
                        });
 
@@ -373,10 +364,16 @@
                    _re = _re[1];
                    _re = _re.split(":");
 
-                   if (_re[0] == "img") {
-                       _msg = "<img src='file/" + _re[1] + "'/>";
-                       //   console.log(_msg);
+                   switch (_re[0]) {
+                       case "img":
+                           _msg = "<img src='file/" + _re[1] + "' imageonload />";
+                           break;
+
+                       case "emotion":
+                           _msg = "<img src='images/" + _re[1] + "' imageonload />";
+                           break;
                    }
+
                }
 
                return _msg;
@@ -410,7 +407,9 @@
                    });
 
                    var sHeight = element.parent()[0].scrollHeight;
-                   element.parent().parent()[0].scrollTop = sHeight;
+                   element.parent().parent()[0].scrollTop = sHeight+100;
+
+
 
                }
            }
@@ -418,7 +417,7 @@
        }
    ]);
 
-   app.directive('chatInput', ['socket', 'global', function(socket, global) {
+   app.directive('chatInput', ['socket', function(socket) {
        /*
           var range = document.createRange();
           var sel = window.getSelection();
@@ -446,7 +445,6 @@
 
                    //back default value; was null
 
-
                    if (event.which === 13) {
                        event.preventDefault();
                        event.stopPropagation();
@@ -459,17 +457,13 @@
                        }
 
                    }
-
-
-
-
-
                });
 
                element.bind("dragover", function(event) {
                    event.preventDefault();
                    event.stopPropagation();
                    element.addClass('hover');
+                   console.log("A");
                })
 
                element.bind("dragleave", function(event) {
@@ -491,6 +485,48 @@
        }
    }]);
 
+   app.directive('rosterList', function() {
+       return {
+           restrict: "A",
+           scope: {
+               rosterList: "=rosterList",
+               openRoom: "=openEvent"
+           },
+           templateUrl: "template/roster_list_panel.html",
+           link: function(scope, element, attrs) {
+               scope.rosterListD = scope.rosterList;
+               scope.text_filter = null;
+
+               element.find('input[type=text]').bind('keydown', function(event) {
+                   if (event.which === 13) {
+                       var _reg = new RegExp('.?' + scope.text_filter + '.?', 'i');
+                       scope.rosterListD = _.filter(scope.rosterList, function(o) {
+                           return o.room_name.match(_reg);
+                       })
+                       scope.$apply();
+                       scope.text_filter = null;
+                   }
+               })
+
+           }
+       }
+   })
+
+   app.directive('imageonload', function() {
+       return {
+           restrict: 'A',
+           link: function(scope, element, attrs) {
+               element.bind('load', function() {
+                   console.log('image is loaded');
+                   var sHeight = element.parent().parent().parent()[0].scrollHeight;
+                   element.parent().parent().parent().parent()[0].scrollTop = sHeight+100;
+               });
+               element.bind('error', function() {
+                   console.log('image could not be loaded');
+               });
+           }
+       };
+   })
 
    app.directive('debug', function() {
        return {

@@ -4,12 +4,12 @@
         <div id='chatControllerHeader'>
             <ul class="headerIcons">
                 <li>
-                    <div>
+                    <div ng-click='changeTab(0)'>
                         <i class="fa fa-users" aria-hidden="true"></i>
                     </div>
                 </li>
                 <li>
-                    <div>
+                    <div ng-click='changeTab(1)'>
                         <i class="fa fa-handshake-o" aria-hidden="true"></i>
                     </div>
                 </li>
@@ -27,27 +27,20 @@
                     <li ng-click='login(val.account)'>{{val.name}}</li>
                 </ul>
             </div>
-            <div ng-if='account.account'>
-
-            <!--
-                <ul id='chatUserList'>
-                    <li ng-repeat="val in users" ng-click='openSingleRoom(val)'>
-                        <div class='chatThumbImg'>
-                            <img src="images/logo.png" alt="">
-                        </div>
-                        <div class='chatRoomListName'>{{val.name}}</div>
-                    </li>
-                </ul>
-
-                -->
-                <ul id='chatUserList'>
-                    <li ng-repeat="val in rooms" ng-click='openRoom(val.room_id)'>
-                        <div class='chatThumbImg'>
-                            <img src="images/logo.png" alt="">
-                        </div>
-                        <div class='chatRoomListName'>{{val.room_name}}({{val.unReadCount}})</div>
-                    </li>
-                </ul>
+            <div ng-if='account.account' ng-switch='tab'>
+                <div ng-switch-when='0' roster-list="rosterRooms" open-event="openRoom"></div>
+                <div ng-switch-when='1'>
+                    <ul class='roomList'>
+                        <li ng-repeat="val in projectRoomsD" ng-click='openRoom(val.room_id)'>
+                            <div class='chatThumbImg'>
+                                <img src="images/logo.png" alt="">
+                            </div>
+                            <div class='chatRoomListName'>{{val.room_name}}
+                                <span ng-if='val.unReadCount'>({{val.unReadCount}})</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

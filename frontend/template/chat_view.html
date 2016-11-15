@@ -28,10 +28,22 @@
             </ul>
         </div>
         <div class='contentInputArea'>
-        <!--
-            <textarea type="text" class='contentInput' chat-input='sendEvents' ng-model='userInput'></textarea>
-            -->
+            <ul class='chat_fn_bar'>
+                <li><i class="fa fa-smile-o " aria-hidden="true" ng-click='triggerEmotionPanel()'></i></li>
+                <li><i class="fa fa-file-o" aria-hidden="true"></i></li>
+            </ul>
             <div contenteditable="true" class="writeBox" chat-input='sendEvents' ng-model='userInput'></div>
         </div>
-    </div>
+        <div class='emotion_panel' ng-if='emotionShow'>
+            <div class="close_btn"><i class="fa fa-times" aria-hidden="true"></i></div>
+            <ul>
+                <li ng-repeat="val in emotions" ng-click="sendEmotion(val)">
+                    <div>                            
+                       <img ng-src="images/{{val.filename}}" alt="">
+                    </div>
+                </li>
+            </ul>
+
+        </div>
+    </div> 
 </div>

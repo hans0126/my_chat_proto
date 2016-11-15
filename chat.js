@@ -9,22 +9,12 @@ var users = [{ name: "hans", account: "08073", connect_id: null },
     { name: "eric", account: "08071", connect_id: null }
 ];
 
+var emotions = [{ code: "0001", filename: "9615145.png" }, { code: "0002", filename: "949891.png" }];
+
+
 var rooms = [];
-//make room best 
-var aa = ["a", "b", "c"],
-    bb = aa,
-    v = 0;
 
-for (var i = 0; i < aa.length; i++) {
-
-    for (var j = 1; j < bb.length; j++) {
-        if (j + v < bb.length) {
-            console.log(aa[i] + bb[j + v]);
-        }
-    }
-    v++
-
-}
+createUserRooms();
 
 rooms.push({
     room_id: 'room1',
@@ -53,7 +43,7 @@ function myChat(io) {
 
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
-        console.log(clientIp);
+       
 
         socket.emit('connected', { users: users });
 
@@ -109,12 +99,12 @@ function myChat(io) {
 
             })
 
-            console.log(rooms);
+            
 
             socket.broadcast.emit('attention', _currentUser.account + ' online');
 
             socket.emit('getRooms', { rooms: _userInRoom });
-
+            socket.emit('emotions', emotions);
             socket.on('disconnect', function() {
                 var _disconnectUser;
                 for (var i = 0; i < users.length; i++) {
@@ -135,11 +125,7 @@ function myChat(io) {
                 */
             });
 
-
-
-
             socket.on('sendMessage', function(_d) {
-
                 createMsgAndBrodcast(_d.owner, _d.room_id, _d.text);
             })
 
@@ -247,6 +233,7 @@ function myChat(io) {
 
     function fileUploadComplete(data) {
         var _d = data.data;
+        console.log(_d);
         var newFileName = data.name.split('.');
         newFileName = randomstring.generate() + "." + newFileName[newFileName.length - 1];
         fs.rename(`${data.path}/${data.name}`, `${data.path}/${newFileName}`, function(err) {
@@ -265,6 +252,8 @@ function myChat(io) {
             create_date: currentDate(),
             id: randomstring.generate()
         }
+
+
 
         var _currentRoom = _.find(rooms, { room_id: _room_id });
 
@@ -319,6 +308,37 @@ function currentDate() {
     var minutes = ("0" + date.getMinutes()).slice(-2);
     var seconds = ("0" + date.getSeconds()).slice(-2);
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+function createUserRooms() {
+    var _users = _users2 = users,
+        v = 0;
+
+    for (var i = 0; i < _users.length; i++) {
+
+        for (var j = 1; j < _users2.length; j++) {
+            if (j + v < _users2.length) {
+                var user1 = _users[i].account,
+                    user2 = _users2[j + v].account;
+
+                rooms.push({
+                    room_id: _createUserRoomId(user1, user2),
+                    room_name: null,
+                    users: [user1, user2],
+                    type: 0
+                })
+            }
+        }
+        v++;
+    }
+
+    function _createUserRoomId(_id, _id2) {
+        var _t = [_id, _id2];
+        _t.sort(function(a, b) {
+            return a > b
+        })
+        return _t[0] + "_" + _t[1];
+    }
 }
 
 
