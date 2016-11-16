@@ -30,6 +30,7 @@ rooms.push({
     type: 1
 })
 
+
 rooms.push({
     room_id: 'room3',
     room_name: '08073_08071_08072',
@@ -43,7 +44,7 @@ function myChat(io) {
 
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
-       
+
 
         socket.emit('connected', { users: users });
 
@@ -99,7 +100,7 @@ function myChat(io) {
 
             })
 
-            
+
 
             socket.broadcast.emit('attention', _currentUser.account + ' online');
 
@@ -125,7 +126,9 @@ function myChat(io) {
                 */
             });
 
+
             socket.on('sendMessage', function(_d) {
+
                 createMsgAndBrodcast(_d.owner, _d.room_id, _d.text);
             })
 
@@ -233,11 +236,13 @@ function myChat(io) {
 
     function fileUploadComplete(data) {
         var _d = data.data;
-        console.log(_d);
+        // console.log(_d);
+
         var newFileName = data.name.split('.');
         newFileName = randomstring.generate() + "." + newFileName[newFileName.length - 1];
         fs.rename(`${data.path}/${data.name}`, `${data.path}/${newFileName}`, function(err) {
             if (err) throw err;
+            //console.log(newFileName);
             createMsgAndBrodcast(_d.owner, _d.room_id, `[img:${newFileName}]`);
         })
     }

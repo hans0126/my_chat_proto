@@ -188,6 +188,10 @@
      margin: 0 auto;
  }
  
+ .msgList >li {
+     position: relative;   
+ }
+ 
  .msgList >li::after {
      content: "";
      display: block;
@@ -202,6 +206,14 @@
      float: right;
  }
  
+.tip {
+     position: absolute;
+     top: 0;
+     right: 0;
+     background: #333;
+     color:#FFF;
+ }
+
  .writeBox {
      border: 1px solid #555;
      width: 100%;
@@ -241,7 +253,8 @@
      bottom: 50px;
      background: #FFF;
      height: 200px;
-     border:1px solid #900;
+     border: 1px solid #900;
+     overflow-y: scroll;
  }
  
  .emotion_panel ul::after {
@@ -250,29 +263,33 @@
      clear: both;
  }
  
- .emotion_panel ul > li {
+ .emotion_panel.emotion_pic ul > li {
      float: left;
      width: 33.33%;
  }
  
- .emotion_panel ul > li > div {
+ .emotion_panel.emotion_pic ul > li > div {
      display: table-cell;
      vertical-align: middle;
      width: 80px;
      height: 80px;
  }
  
- .emotion_panel ul > li > div > img {
+ .emotion_panel.emotion_pic ul > li > div > img {
      max-width: 100%;
      max-height: : 100%;
  }
-
-
-.emotion_panel .close_btn {
+ 
+ .emotion_panel .close_btn {
      position: absolute;
      top: 0;
      right: 0;
      width: 25px;
      height: 25px;
      text-align: center;
-}
+ }
+ 
+ .emotion_panel.emotion_icon ul > li {
+     float: left;
+     font-size: 20px;
+ }

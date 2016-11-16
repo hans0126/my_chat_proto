@@ -22,28 +22,41 @@
             </ul>
             <div class='contentTitle'>{{chat.room_name}}</div>
         </div>
+        
+        <div class='tip' tip='tip' ng-if='tip.visible'></div>
+        
         <div class='contentBody'>
             <ul class="msgList">
-                <li single-msg="val" ng-repeat="val in chat.msg"></li>
+                <li single-msg="val" tips="tip" ng-repeat="val in chat.msg" ></li>
             </ul>
         </div>
         <div class='contentInputArea'>
             <ul class='chat_fn_bar'>
-                <li><i class="fa fa-smile-o " aria-hidden="true" ng-click='triggerEmotionPanel()'></i></li>
+                <li><i class="fa fa-star-half-o" aria-hidden="true" ng-click='triggerEmotionPanel()'></i></li>
+                <li ng-click='triggerEmotionIconPanel()'><i class="fa fa-smile-o" aria-hidden="true"></i></li>
                 <li><i class="fa fa-file-o" aria-hidden="true"></i></li>
             </ul>
             <div contenteditable="true" class="writeBox" chat-input='sendEvents' ng-model='userInput'></div>
         </div>
-        <div class='emotion_panel' ng-if='emotionShow'>
+        <div class='emotion_panel emotion_pic' ng-show='emotionShow'>
             <div class="close_btn"><i class="fa fa-times" aria-hidden="true"></i></div>
             <ul>
                 <li ng-repeat="val in emotions" ng-click="sendEmotion(val)">
-                    <div>                            
-                       <img ng-src="images/{{val.filename}}" alt="">
+                    <div>
+                        <img ng-src="images/{{val.filename}}" alt="">
                     </div>
                 </li>
             </ul>
-
         </div>
-    </div> 
+        <div class='emotion_panel emotion_icon' ng-show='emotionIconShow'>
+            <div class="close_btn"><i class="fa fa-times" aria-hidden="true"></i></div>
+            <ul>
+                <li ng-repeat="val in emotionIcons track by $index" ng-click="insertEmotionIcon(val)">
+                    <div>
+                        {{val}}
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
