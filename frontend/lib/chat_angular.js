@@ -1,20 +1,23 @@
    var app = angular.module('app', []);
    var socketUrl = 'ws://192.168.10.49:3000';
-   app.controller('chat', ['$scope', 'socket', '_', 'global', function($scope, socket, _, global) {
-       var _self = this;
-       $scope.greeting = 'Welcome!';
-       $scope.users = [];
-       $scope.account = {};
-       $scope.displayRooms = []; //active rooms
-       $scope.rooms = []; // root rooms
-       $scope.rosterRooms = []; // unit rooms
-       $scope.projectRooms = [];
-       $scope.companyRooms = [];
-       $scope.emotions = [];
-       $scope.emotionIcons = ["😃", "😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "😗", "😙", "😚", "🙂", "🤗", "🤔", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "🤓", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "😬", "😰", "😱", "😳", "😵", "😡", "😠", "😇", "🤠", "🤡", "🤥", "😷", "🤒", "🤕", "🤢", "🤧", "😈", "👿"];
+   app.controller('chat', ['$scope',
+       'socket',
+       '_',
+       '$rootScope',
+       function($scope, socket, _, $rootScope) {
+           var _self = this;
+           $rootScope.users = [];
+           $rootScope.account = {};
+           $rootScope.displayRooms = []; //active rooms
+           $scope.rooms = []; // root rooms
+           $scope.rosterRooms = []; // unit rooms
+           $scope.projectRooms = [];
+           $scope.companyRooms = [];
+           $scope.emotions = [];
+           $scope.emotionIcons = ["😃", "😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "😗", "😙", "😚", "🙂", "🤗", "🤔", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "🤓", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "😬", "😰", "😱", "😳", "😵", "😡", "😠", "😇", "🤠", "🤡", "🤥", "😷", "🤒", "🤕", "🤢", "🤧", "😈", "👿"];
 
 
-       /*
+           /*
         
       rooms -
             |- rosterRooms
@@ -24,103 +27,96 @@
 
        */
 
-       socket.on('connected', function(_d) {
-           angular.extend($scope.users, _d.users);
+           socket.on('connected', function(_d) {
+               angular.extend($rootScope.users, _d.users);
 
-           socket.on('disconnect', function() {
-               console.log("die");
+               socket.on('disconnect', function() {
+                   console.log("die");
 
-               $scope.displayRooms = [];
-               $scope.rooms = [];
-               $scope.projectRooms = [];
-               $scope.account = {};
-           })
-       })
-
-       socket.on('login', function(_d) {
-           _self.currentAccount = global.account = _d;
-           $scope.account = _d;
-       })
-
-       socket.on('emotions', function(_d) {
-           angular.extend($scope.emotions, _d);
-       })
-
-
-
-       socket.on('getHistoryMsg', function(_d) {
-
-           var _room = _.find($scope.rooms, {
-               room_id: _d.room_id
+                   $rootScope.displayRooms = [];
+                   $scope.rooms = [];
+                   $scope.projectRooms = [];
+                   $scope.account = {};
+               })
            })
 
-           _room.msg = _d.messages;
-           _room.initLoad = true;
+           socket.on('login', function(_d) {
+               // _self.currentAccount = global.account = _d;
+               $scope.account = $rootScope.account = _d;
 
-       });
-
-
-
-
-       socket.on('getUnReadMessage', function(_d) {
-           _room = _.find($scope.rooms, {
-               room_id: _d.room_id
-           });
-
-           _.forEach(_d.msg, function(_v) {
-               _room.msg.push(_v);
            })
 
-       })
+           socket.on('emotions', function(_d) {
+               angular.extend($scope.emotions, _d);
+           })
 
 
-       socket.on('getUnReadMessageCount', function(_d) {
 
-           _room = _.find($scope.rooms, {
-               room_id: _d.room_id
+           socket.on('getHistoryMsg', function(_d) {
+
+               var _room = _.find($scope.rooms, {
+                   room_id: _d.room_id
+               })
+
+               _room.msg = _d.messages;
+               _room.initLoad = true;
+
            });
 
-           _room.unReadCount = _d.count;
-       })
-
-       socket.on('getMessage', function(_d) {
-
-           _re = _.find($scope.displayRooms, {
-               room_id: _d.room_id
-           });
-
-           if (_re && !_re.minimize) {
-               _re.msg.push(_d);
-           } else {
-               socket.emit('getUnReadMessageCount', {
-                   account: $scope.account.account,
+           socket.on('getUnReadMessage', function(_d) {
+               _room = _.find($scope.rooms, {
                    room_id: _d.room_id
                });
-           }
-       })
 
-       socket.on('readMessage', function(_d) {
-           _room = _.find($scope.rooms, {
-               room_id: _d.room_id
-           });
-           _msg = _.find(_room.msg, {
-               id: _d.id
+               _.forEach(_d.msg, function(_v) {
+                   _room.msg.push(_v);
+               })
+
            });
 
-           if (!_msg) {
-               return;
-           }
+           socket.on('getUnReadMessageCount', function(_d) {
 
-           _msg.read_count = _d.read_count;
+               _room = _.find($scope.rooms, {
+                   room_id: _d.room_id
+               });
 
+               _room.unReadCount = _d.count;
+           })
 
-       });
+           socket.on('getMessage', function(_d) {
 
+               _re = _.find($rootScope.displayRooms, {
+                   room_id: _d.room_id
+               });
 
+               if (_re && !_re.minimize) {
+                   _re.msg.push(_d);
+               } else {
+                   socket.emit('getUnReadMessageCount', {
+                       account: $scope.account.account,
+                       room_id: _d.room_id
+                   });
+               }
+           })
 
-   }]);
+           socket.on('readMessage', function(_d) {
+               _room = _.find($scope.rooms, {
+                   room_id: _d.room_id
+               });
+               _msg = _.find(_room.msg, {
+                   id: _d.id
+               });
 
-   app.directive('controllPanel', ['global', 'socket', function(global, socket) {
+               if (!_msg) {
+                   return;
+               }
+
+               _msg.read_count = _d.read_count;
+           });
+       }
+   ]);
+
+   app.directive('controllPanel', ['socket', function(socket) {
 
        return {
            restrict: "A",
@@ -138,6 +134,8 @@
                    initLoad: false,
                    unReadCount: 0,
                    minimize: false,
+                   users: [],
+                   css: { 'z-index': 100 },
                    minimizeAction: function() {
                        this.minimize = !this.minimize;
                        if (this.minimize) {
@@ -191,20 +189,6 @@
                    })
                }
 
-               scope.openSingleRoom = function(_v) {
-                   var _tempArray = [_v.account, scope.account.account];
-                   _tempArray.sort(function(a, b) {
-                       return a > b
-                   });
-
-                   var _room_id = _tempArray[0] + "_" + _tempArray[1];
-                   var _room = angular.copy(chatObj);
-                   _room.room_id = _room_id;
-                   _room.type = 0;
-                   _room.room_name = _v.name;
-                   scope.displayRooms.push(_room);
-               }
-
                scope.openRoom = function(_room_id) {
 
                    var _room = _.find(scope.rooms, {
@@ -231,6 +215,10 @@
 
                    _.forEach(_d.rooms, function(_v) {
                        var _chatObj = angular.copy(chatObj);
+
+                       var _idx = _v.users.indexOf(scope.account.account);
+                       //       _v.users.splice(_idx, 1);
+
 
                        _chatObj.room_id = _v.room_id;
                        _chatObj.type = _v.type;
@@ -266,6 +254,9 @@
                                break;
                        }
 
+                       _v.users.splice(_idx, 1);
+                       _chatObj.users = _v.users;
+
                        scope.rooms.push(_chatObj);
 
                        socket.emit('getUnReadMessageCount', {
@@ -284,177 +275,203 @@
    }])
 
 
-   app.directive('chatPanel', ['global', 'socket', function(global, socket) {
+   app.directive('chatPanel', ['socket',
+       '$rootScope',
+       function(socket, $rootScope) {
 
-       return {
-           restrict: "A",
-           replace: true,
-           scope: {
-               chat: "=chatPanel",
-               emotions: "=chatEmotions",
-               emotionIcons: "=chatEmotionicons"
-           },
-           templateUrl: "template/chat_view.html",
-           link: function(scope, element, attrs) {
-               var contentBody = element.find('.contentBody');
-               scope.userInput = null;
-               scope.sendEvents = {};
-               scope.emotionShow = false;
-               scope.emotionIconShow = false;
-               scope.tip = {
+           return {
+               restrict: "A",
+               replace: true,
+               scope: {
+                   chat: "=chatPanel",
+                   emotions: "=chatEmotions",
+                   emotionIcons: "=chatEmotionicons"
+               },
+               templateUrl: "template/chat_view.html",
+               link: function(scope, element, attrs) {
+
+                   // var contentBody = element.find('.contentBody');
+                   scope.userInput = null;
+                   scope.sendEvents = {};
+                   scope.emotionShow = false;
+                   scope.emotionIconShow = false;
+                   scope.tip = {
                        visible: false,
                        top: 40,
                        create_date: null,
                        read_count: null,
                        owner: null
                    }
-                   /*
-               scope.showTip = function(_v) {
-                   scope.tip.visible = true;
-                   
-                  console.log(angular.$elem(this))
-               }
 
-               scope.hideTip = function(_v) {
-                   scope.tip.visible = false;
-               }
+                   scope.usersShow = false;
 
+                   //when readyToLoadPreMsg is true then get data
+                   //prevent Multiple trigger
+                   var readyToLoadPreMsg = true;
 
-        */
-
-               var writeBox = element.find('.writeBox'),
-                   rangeOffset = 0;
-
-               writeBox.bind('click', function(e) {
-                   rangeOffset = getCaretPosition();
-               })
-
-               writeBox.bind('keydown', function(e) {
-                   rangeOffset = getCaretPosition() + 1;
-                   scope.userInput = writeBox.html();
-                   if (e.which === 13) {
-                       e.preventDefault();
-                       e.stopPropagation();
-
-                       if (scope.userInput) {
-                           socket.emit('sendMessage', {
-                               room_id: scope.chat.room_id,
-                               text: stripTag(scope.userInput),
-                               owner: scope.chat.account
-                           })
-                           writeBox.html("");
-                           scope.userInput = null;
-                       }
-
-                       if (e.shiftKey) {
-
-                       } else {
-                           //scope.sendEvents.sendMsg();
-                       }
-
-                   }
-               })
-
-               writeBox.bind("dragover", function(event) {
-                   event.preventDefault();
-                   event.stopPropagation();
-                   writeBox.addClass('hover');
-               })
-
-               writeBox.bind("dragleave", function(event) {
-                   event.preventDefault();
-                   event.stopPropagation();
-                   writeBox.removeClass('hover');
-               })
-
-               writeBox.on("drop", function(event) {
-                   event.preventDefault();
-                   event.stopPropagation();
-
-                   var _file = event.originalEvent.dataTransfer.files[0];
-                   writeBox.removeClass('hover');
-                   socket.upload(_file, {
-                       types: [
-                           'image/png',
-                           'image/jpeg',
-                           'image/pjpeg'
-                       ],
-                       to: 'file',
-                       data: {
-                           room_id: scope.chat.room_id,
-                           owner: scope.chat.account
-                       }
-                   });
-               })
-
-
-
-               function stripTag(_t) {
-                   // console.log(_t);
-                   if (!_t) {
-                       return
-                   }
-                   var regex = /(<([^>]+)>)/ig;
-                   var _re = _t.replace(regex, "");
-                   return _re;
-               }
-
-               function getCaretPosition() {
-                   return window.getSelection().getRangeAt(0).endOffset;
-               }
-
-
-               //   console.log(scope.emotionIcons);
-
-               scope.triggerEmotionPanel = function() {
-                   if (scope.emotionIconShow) {
-                       scope.emotionIconShow = !scope.emotionIconShow;
+                   scope.usersShowEvent = function() {
+                       scope.usersShow = !scope.usersShow;
                    }
 
-                   scope.emotionShow = !scope.emotionShow;
-               }
+                   scope.contentBody = element.find('.contentBody');
 
-               scope.sendEmotion = function(_v) {
+                   var writeBox = element.find('.writeBox'),
+                       rangeOffset = 0;
 
-                   socket.emit('sendMessage', {
-                       room_id: scope.chat.room_id,
-                       text: "[emotion:" + _v.filename + "]",
-                       owner: scope.chat.account
+                   writeBox.bind('click', function(e) {
+                       rangeOffset = getCaretPosition();
+                       scope.emotionShow = false;
+                       scope.emotionIconShow = false;
+                       scope.$apply();
                    })
 
-                   scope.emotionShow = false;
-               }
+                   writeBox.bind('keydown', function(e) {
+                       rangeOffset = getCaretPosition() + 1;
+                       scope.userInput = writeBox.html();
+                       if (e.which === 13) {
+                           e.preventDefault();
+                           e.stopPropagation();
 
-               scope.triggerEmotionIconPanel = function() {
-                   if (scope.emotionShow) {
+                           if (scope.userInput) {
+                               socket.emit('sendMessage', {
+                                   room_id: scope.chat.room_id,
+                                   text: stripTag(scope.userInput),
+                                   owner: scope.chat.account
+                               })
+                               writeBox.html("");
+                               scope.userInput = null;
+                           }
+
+                           if (e.shiftKey) {
+
+                           } else {
+                               //scope.sendEvents.sendMsg();
+                           }
+
+                       }
+                   })
+
+                   writeBox.bind("dragover", function(event) {
+                       event.preventDefault();
+                       event.stopPropagation();
+                       writeBox.addClass('hover');
+                   })
+
+                   writeBox.bind("dragleave", function(event) {
+                       event.preventDefault();
+                       event.stopPropagation();
+                       writeBox.removeClass('hover');
+                   })
+
+                   writeBox.on("drop", function(event) {
+                       event.preventDefault();
+                       event.stopPropagation();
+
+                       var _file = event.originalEvent.dataTransfer.files[0];
+                       writeBox.removeClass('hover');
+                       socket.upload(_file, {
+                           types: [
+                               'image/png',
+                               'image/jpeg',
+                               'image/pjpeg'
+                           ],
+                           to: 'file',
+                           data: {
+                               room_id: scope.chat.room_id,
+                               owner: scope.chat.account
+                           }
+                       });
+                   })
+
+                   element.bind('mouseenter', function(event) {
+                       event.preventDefault();
+                       event.stopPropagation();
+
+                       if ($rootScope.displayRooms.length > 1) {
+                           _.forEach($rootScope.displayRooms, function(o) {
+                               if (o.room_id == scope.chat.room_id) {
+                                   o.css['z-index'] = 100;
+                               } else {
+                                   o.css['z-index'] = 90;
+                               }
+
+                           })
+
+                           scope.$apply();
+                       }
+
+                   })
+
+                   function stripTag(_t) {
+                       // console.log(_t);
+                       if (!_t) {
+                           return
+                       }
+                       var regex = /(<([^>]+)>)/ig;
+                       var _re = _t.replace(regex, "");
+                       return _re;
+                   }
+
+                   function getCaretPosition() {
+                       return window.getSelection().getRangeAt(0).endOffset;
+                   }
+
+
+                   //   console.log(scope.emotionIcons);
+
+                   scope.triggerEmotionPanel = function() {
+                       if (scope.emotionIconShow) {
+                           scope.emotionIconShow = !scope.emotionIconShow;
+                       }
+
                        scope.emotionShow = !scope.emotionShow;
                    }
 
-                   scope.emotionIconShow = !scope.emotionIconShow;
-               }
-
-               scope.insertEmotionIcon = function(_v) {
-                   var _t = writeBox.html();
-                   writeBox.html(_t.substr(0, rangeOffset) + _v + _t.substr(rangeOffset, _t.length));
-                   scope.emotionIconShow = false;
-               }
-
-
-               scope.sendEvents.sendMsg = function() {
-
-                   if (scope.userInput) {
+                   scope.sendEmotion = function(_v) {
 
                        socket.emit('sendMessage', {
                            room_id: scope.chat.room_id,
-                           text: scope.userInput,
+                           text: "[emotion:" + _v.filename + "]",
                            owner: scope.chat.account
                        })
 
-                       scope.userInput = null;
+                       scope.emotionShow = false;
                    }
-               }
 
-               scope.sendEvents.uploadFile = function(_file) {
+                   scope.triggerEmotionIconPanel = function() {
+                       if (scope.emotionShow) {
+                           scope.emotionShow = !scope.emotionShow;
+                       }
+
+                       scope.emotionIconShow = !scope.emotionIconShow;
+                   }
+
+                   scope.insertEmotionIcon = function(_v) {
+                       var _t = writeBox.html();
+                      
+                       writeBox.html(_t.substr(0, rangeOffset) + _v + _t.substr(rangeOffset, _t.length));
+
+                       if (_t.length == rangeOffset) { //is last charact
+                           rangeOffset = getCaretPosition() + 1;
+                       }
+                   }
+
+
+                   scope.sendEvents.sendMsg = function() {
+
+                       if (scope.userInput) {
+
+                           socket.emit('sendMessage', {
+                               room_id: scope.chat.room_id,
+                               text: scope.userInput,
+                               owner: scope.chat.account
+                           })
+
+                           scope.userInput = null;
+                       }
+                   }
+
+                   scope.sendEvents.uploadFile = function(_file) {
 
                        socket.upload(_file, {
                            types: [
@@ -471,23 +488,49 @@
 
 
                    }
-                   /*
-                   contentBody.bind('scroll', function() {
-                       console.log('in scroll');
-                       console.log(contentBody[0].scrollTop);
-                       console.log(contentBody[0].scrollHeight);
-                       
+
+
+                   scope.contentBody.bind('scroll', function() {
+
+
+                       if (scope.contentBody[0].scrollTop == 0 && readyToLoadPreMsg) {
+                           if (scope.chat.msg.length > 0) {
+                              
+                               socket.emit('getPreMsg', {
+                                   id: scope.chat.msg[0].id,
+                                   room_id: scope.chat.msg[0].room_id
+                               })
+
+
+                               readyToLoadPreMsg = false;
+                           }
+                       }
+
                    });
-                    */
+
+
+                   socket.on('getPreMsg', function(_d) {
+
+                       if (_d.messages.length > 0) {
+                           setTimeout(function() {
+                               readyToLoadPreMsg = true;
+                           }, 3000)
+                       }
 
 
 
+                       _.forEach(_d.messages, function(o) {
+                           o.past = true;
+                           scope.chat.msg.unshift(o);
+                       })
+                   })
+
+
+
+               }
            }
-
-
        }
-
-   }]);
+   ]);
 
    app.directive('tip', function() {
 
@@ -515,16 +558,15 @@
                    right: _right,
                    left: _left
                })
-               //console.log(scope.tip);
            }
        }
 
    })
 
-   app.directive('singleMsg', ['global',
-       '$compile',
+   app.directive('singleMsg', ['$compile',
        'socket',
-       function(global, $compile, socket) {
+       '$rootScope',
+       function($compile, socket, $rootScope) {
 
            function tripImg(_msg) {
                if (!_msg) {
@@ -552,35 +594,42 @@
                restrict: "A",
                scope: {
                    msg: "=singleMsg",
-                   tip: "=tips"
+                   tip: "=tips",
+                   contentBody: "=contentBody"
                },
                link: function(scope, element, attrs) {
+
+
                    scope.tipVisible = true;
+                   scope.ulContent = element.parent();
+                   // console.log(scope.contentBody);
                    var _t = "";
-                   if (global.account.account == scope.msg.owner) {
+                   if ($rootScope.account.account == scope.msg.owner) {
                        element.addClass('owner');
                    } else {
                        _t += "<div>{{msg.owner}}:</div>";
                    }
 
-                   _t += "<div class='msg_content'>" + tripImg(scope.msg.msg) + "({{msg.read_count}})</div>";
-
+                   _t += "<div class='msg_content'>" + tripImg(scope.msg.msg) + "</div>";
 
 
                    var el = angular.element(_t);
                    element.append(el);
                    $compile(el)(scope);
 
-
-
                    var mContent = element.find('.msg_content');
 
                    mContent.bind('mouseover', function() {
+
                        scope.tip.visible = true;
-                       scope.tip.top = element[0].offsetTop;
+                       scope.tip.top = element[0].offsetTop - scope.contentBody[0].scrollTop;
+                       if (scope.tip.top < 0) {
+                           scope.tip.visible = false;
+                       }
+
                        scope.tip.create_date = scope.msg.create_date;
                        scope.tip.read_count = scope.msg.read_count;
-                       if (global.account.account == scope.msg.owner) {
+                       if ($rootScope.account.account == scope.msg.owner) {
                            scope.tip.owner = true;
                        } else {
                            scope.tip.owner = false;
@@ -594,19 +643,42 @@
                        scope.$apply();
                    })
 
+
+
                    socket.emit('readMessage', {
                        id: scope.msg.id,
-                       account: global.account.account,
+                       account: $rootScope.account.account,
                        room_id: scope.msg.room_id
                    });
 
-                   var sHeight = element.parent()[0].scrollHeight;
-                   element.parent().parent()[0].scrollTop = sHeight + 100;
+                   //if past msg scroll bar don't move to bottom 
+                   if (!scope.msg.past) {
+                       var sHeight = element.parent()[0].scrollHeight;
+                       scope.contentBody[0].scrollTop = sHeight + 100;
+                   } 
                }
            }
 
        }
    ]);
+
+   app.directive('imageonload', function() {
+       return {
+           restrict: 'A',
+           scope: true,
+           link: function(scope, element, attrs) {
+               element.bind('load', function() {
+                   console.log('image is loaded');
+                   var sHeight = scope.ulContent[0].scrollHeight;
+                   scope.contentBody[0].scrollTop = sHeight + 100;
+               });
+               element.bind('error', function() {
+                   console.log('image could not be loaded');
+               });
+           }
+       };
+   })
+
 
    app.directive('rosterList', function() {
        return {
@@ -635,21 +707,25 @@
        }
    })
 
-   app.directive('imageonload', function() {
+   app.directive('roomUsersList', ['$rootScope', function($rootScope) {
        return {
-           restrict: 'A',
+           restrict: "A",
+           scope: {
+               users: "=roomUsersList"
+           },
+           template: "<ul><li ng-repeat='val in userList'>{{val.name}}</li></ul>",
            link: function(scope, element, attrs) {
-               element.bind('load', function() {
-                   console.log('image is loaded');
-                   var sHeight = element.parent().parent().parent()[0].scrollHeight;
-                   element.parent().parent().parent().parent()[0].scrollTop = sHeight + 100;
-               });
-               element.bind('error', function() {
-                   console.log('image could not be loaded');
-               });
+               scope.userList = [];
+               _.forEach(scope.users, function(o) {
+                   var _re = _.find($rootScope.users, { account: o });
+                   if (_re) {
+                       scope.userList.push(_re);
+                   }
+               })
            }
-       };
-   })
+       }
+
+   }])
 
    app.directive('debug', function() {
        return {
@@ -657,10 +733,6 @@
            restrict: "A",
            scope: {}
        }
-   })
-
-   app.service('global', function() {
-
    })
 
    app.factory('socket', function($rootScope) {
@@ -690,10 +762,7 @@
            }
        };
    });
-
-
-
-
+   //lodash
    app.factory('_', ['$window',
        function($window) {
            // place lodash include before angular

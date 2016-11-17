@@ -41,6 +41,7 @@ rooms.push({
 //modelMsg.mymy();
 
 function myChat(io) {
+    var pageCount = 20;
 
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
@@ -172,7 +173,7 @@ function myChat(io) {
                 var output_msg = [];
                 modelMsg.find({
                     room_id: _d.room_id
-                }).sort({ create_date: -1 }).limit(20).exec(function(err, _re) {
+                }).sort({ _id: -1 }).limit(pageCount).exec(function(err, _re) {
                     _re.reverse();
                     for (var i = 0; i < _re.length; i++) {
                         output_msg.push(_re[i]);
@@ -199,8 +200,6 @@ function myChat(io) {
                         msg: _re
                     });
                 })
-
-
             })
 
 
@@ -220,6 +219,24 @@ function myChat(io) {
                         count: _re.length
                     });
                 })
+            })
+
+            socket.on('getPreMsg', function(_d) {
+
+                modelMsg.findOne({
+                    room_id: _d.room_id,
+                    id: _d.id
+                }, { _id: 1 }, function(err, _re) {                   
+                    modelMsg.find({ _id: { $lt: _re._id } }).sort({ _id: -1 }).limit(pageCount).exec(function(err, _re2) {
+
+
+
+                        socket.emit('getPreMsg',{ messages: _re2, room_id: _d.room_id })
+
+                    })
+
+                })
+
             })
 
             //upload file
