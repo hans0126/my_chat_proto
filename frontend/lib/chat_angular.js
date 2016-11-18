@@ -74,7 +74,7 @@
                })
            })
 
-           socket.on('login', function(_d) {              
+           socket.on('login', function(_d) {
                $scope.account = $rootScope.account = _d;
            })
 
@@ -106,6 +106,7 @@
 
                _.forEach(_d.msg, function(_v) {
                    _room.msg.push(_v);
+                   _room.unReadCount--;
                })
 
            });
@@ -120,7 +121,7 @@
            })
 
            socket.on('getMessage', function(_d) {
-
+               //has displayed
                _re = _.find($rootScope.displayRooms, {
                    room_id: _d.room_id
                });
@@ -128,19 +129,29 @@
                if (_re && !_re.minimize) {
                    _re.msg.push(_d);
                } else {
-                   socket.emit('getUnReadMessageCount', {
-                       account: $scope.account.account,
-                       room_id: _d.room_id
-                   });
+
+                   if (_d.owner != $rootScope.users.account) {
+                       _re2 = _.find($scope.rooms, { room_id: _d.room_id });
+                       _re2.unReadCount++;
+                   }
+
+                   /*
+                    socket.emit('getUnReadMessageCount', {
+                        account: $scope.account.account,
+                        room_id: _d.room_id
+                    });
+                   */
                }
+
+
            })
 
 
            socket.on('getPreMsg', function(_d) {
-            
+
                _room = _.find($scope.rooms, {
                    room_id: _d.room_id
-               });            
+               });
 
                _.forEach(_d.messages, function(o) {
                    o.past = true;
@@ -204,7 +215,7 @@
                                })
                            }
 
-                           this.unReadCount = 0;
+                           // this.unReadCount = 0;
                        }
                    },
                    class: null,
@@ -212,6 +223,11 @@
                        var _idx = _.findIndex(scope.displayRooms, {
                            room_id: this.room_id
                        });
+                       /*
+                        if (this.minimize) {
+                            this.minimizeAction();
+                        }
+                       */
 
                        scope.displayRooms.splice(_idx, 1);
                    }
@@ -781,8 +797,8 @@
 
                scope.minimizeVisible = false;
 
-               scope.visibleBtn = function (){
-                  scope.minimizeVisible = !scope.minimizeVisible;
+               scope.visibleBtn = function() {
+                   scope.minimizeVisible = !scope.minimizeVisible;
                }
            }
        }
