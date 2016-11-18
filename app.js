@@ -6,6 +6,8 @@ var chat = require("./chat")(io);
 var path = require("path");
 var mongoose = require('mongoose');
 
+
+
 mongoose.connect("mongodb://localhost:27017/chat");
 var frontendPath = path.resolve(__dirname + '/frontend/');
 

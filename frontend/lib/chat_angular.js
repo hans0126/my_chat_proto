@@ -46,6 +46,10 @@
 
            })
 
+           socket.on('updateUsersList', function(_d) {
+               angular.extend($rootScope.users, _d.users);
+           })
+
            socket.on('emotions', function(_d) {
                angular.extend($scope.emotions, _d);
            })
@@ -113,6 +117,11 @@
 
                _msg.read_count = _d.read_count;
            });
+
+
+           socket.on('testaaa', function(_d) {
+               console.log(_d);
+           })
        }
    ]);
 
@@ -448,7 +457,7 @@
 
                    scope.insertEmotionIcon = function(_v) {
                        var _t = writeBox.html();
-                      
+
                        writeBox.html(_t.substr(0, rangeOffset) + _v + _t.substr(rangeOffset, _t.length));
 
                        if (_t.length == rangeOffset) { //is last charact
@@ -495,7 +504,7 @@
 
                        if (scope.contentBody[0].scrollTop == 0 && readyToLoadPreMsg) {
                            if (scope.chat.msg.length > 0) {
-                              
+
                                socket.emit('getPreMsg', {
                                    id: scope.chat.msg[0].id,
                                    room_id: scope.chat.msg[0].room_id
@@ -655,7 +664,7 @@
                    if (!scope.msg.past) {
                        var sHeight = element.parent()[0].scrollHeight;
                        scope.contentBody[0].scrollTop = sHeight + 100;
-                   } 
+                   }
                }
            }
 

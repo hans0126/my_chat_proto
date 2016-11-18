@@ -3,16 +3,20 @@ var SocketIOFile = require('socket.io-file');
 var fs = require('fs');
 var _ = require('lodash');
 var modelMsg = require('./models/msg');
+var gp = require("./global_process"); //globel 
 
-var users = [{ name: "hans", account: "08073", connect_id: null },
+gp.users = [{ name: "hans", account: "08073", connect_id: null },
     { name: "ben", account: "08072", connect_id: null },
     { name: "eric", account: "08071", connect_id: null }
-];
+]
 
-var emotions = [{ code: "0001", filename: "9615145.png" }, { code: "0002", filename: "949891.png" }];
+gp.emotions = [{ code: "0001", filename: "9615145.png" }, { code: "0002", filename: "949891.png" }];
 
+var users = gp.users;
+var emotions = gp.emotions;
+var rooms = gp.rooms;
+var online_users = gp.online_users;
 
-var rooms = [];
 
 createUserRooms();
 
@@ -39,27 +43,46 @@ rooms.push({
 })
 
 //modelMsg.mymy();
-
 function myChat(io) {
+
+
     var pageCount = 20;
 
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
 
+        gp.user = socket;
 
         socket.emit('connected', { users: users });
 
         socket.on('login', function(_d) {
+
             var _currentUser = null;
             var _userInRoom = [];
             //get current user info
             var _currentUser = _.find(users, { account: _d.account });
             _currentUser.connect_id = socket.id;
+
+           
+            //find duplicate login, renew this
+            var _idx = -1;
+            _.forEach(online_users, function(data, idx) {
+                if (_.isEqual(data, { account: _currentUser.account })) {
+                    index = idx;
+                    return;
+                }
+            });
+
+            online_users.splice(_idx, 1);
+            online_users.push({ account: _currentUser.account, socket: socket });
+
+
             //put login message
             socket.emit('login', _currentUser);
             //change user list
             io.emit('updateUsersList', { users: users });
 
+            //join room (group) 
             _.forEach(rooms, function(_v) {
                 if (_v.users.indexOf(_currentUser.account) > -1) {
                     socket.join(_v.room_id);
@@ -67,47 +90,34 @@ function myChat(io) {
                     returnRoomUsers(_v.room_id);
                 }
             })
-
-
+            //join room (1 by 1)
             _.forEach(users, function(_v) {
-
                 if (_v.account != _currentUser.account) {
-                    var _tempArray = [_currentUser.account, _v.account];
-
-                    _tempArray.sort(function(a, b) {
-                        return a > b
-                    });
-
-                    var _room_id = `${_tempArray[0]}_${_tempArray[1]}`;
-                    socket.join(_room_id);
-
-                    var _re = _.find(rooms, { room_id: _room_id });
-                    // console.log(_re);
-
-                    if (!_re) {
-                        rooms.push({
-                            room_id: _room_id,
-                            room_name: null,
-                            users: _tempArray,
-                            type: 0
-                        })
-                    }
-                    /*
-                    if (!_.find(rooms, { account: _room_id })) {
-                       
-                    }*/
+                    var _room_id = gp.createUserRoomId(_currentUser.account,_v.account);
+                    socket.join(_room_id);                          
                 }
-
-
             })
-
-
 
             socket.broadcast.emit('attention', _currentUser.account + ' online');
 
             socket.emit('getRooms', { rooms: _userInRoom });
             socket.emit('emotions', emotions);
+
             socket.on('disconnect', function() {
+                _currentUser.connect_id = null;
+                io.emit('updateUsersList', { users: users });
+
+                var _idx = -1;
+                _.forEach(online_users, function(data, idx) {
+                    if (_.isEqual(data, { account: _currentUser.account })) {
+                        index = idx;
+                        return;
+                    }
+                });
+
+                online_users.splice(_idx, 1);
+
+                /*
                 var _disconnectUser;
                 for (var i = 0; i < users.length; i++) {
                     if (users[i].connect_id == socket.id) {
@@ -117,6 +127,9 @@ function myChat(io) {
                         break;
                     }
                 }
+                
+                */
+
                 //renew users status
                 /*
                 for (var key in rooms) {
@@ -130,7 +143,7 @@ function myChat(io) {
 
             socket.on('sendMessage', function(_d) {
 
-                createMsgAndBrodcast(_d.owner, _d.room_id, _d.text);
+                gp.createMsgAndBrodcast(io,_d.owner, _d.room_id, _d.text);
             })
 
             socket.on('readMessage', function(_d) {
@@ -146,7 +159,7 @@ function myChat(io) {
                         }
                     }, {
                         $set: {
-                            'users.$.read_time': currentDate()
+                            'users.$.read_time': gp.currentDate()
                         },
                         $inc: {
                             read_count: 1
@@ -226,12 +239,9 @@ function myChat(io) {
                 modelMsg.findOne({
                     room_id: _d.room_id,
                     id: _d.id
-                }, { _id: 1 }, function(err, _re) {                   
+                }, { _id: 1 }, function(err, _re) {
                     modelMsg.find({ _id: { $lt: _re._id } }).sort({ _id: -1 }).limit(pageCount).exec(function(err, _re2) {
-
-
-
-                        socket.emit('getPreMsg',{ messages: _re2, room_id: _d.room_id })
+                        socket.emit('getPreMsg', { messages: _re2, room_id: _d.room_id })
 
                     })
 
@@ -260,48 +270,8 @@ function myChat(io) {
         fs.rename(`${data.path}/${data.name}`, `${data.path}/${newFileName}`, function(err) {
             if (err) throw err;
             //console.log(newFileName);
-            createMsgAndBrodcast(_d.owner, _d.room_id, `[img:${newFileName}]`);
+            gp.createMsgAndBrodcast(io,_d.owner, _d.room_id, `[img:${newFileName}]`);
         })
-    }
-
-    function createMsgAndBrodcast(_owner, _room_id, _msg) {
-
-        var _m = {
-            owner: _owner,
-            room_id: _room_id,
-            msg: _msg,
-            users: [],
-            create_date: currentDate(),
-            id: randomstring.generate()
-        }
-
-
-
-        var _currentRoom = _.find(rooms, { room_id: _room_id });
-
-
-        _.forEach(_currentRoom.users, function(_v) {
-            _m.users.push({
-                user: _v,
-                read_time: null
-            })
-        })
-
-        /*
-        for (var i = 0; i < rooms[_room].length; i++) {
-            _m.users.push({
-                user: rooms[_room][i],
-                read_time: null
-            })
-        }
-    */
-        var _msgMongo = new modelMsg(_m);
-
-        _msgMongo.save().then(function(_p) {
-            //console.log(_p);
-            io.in(_room_id).emit('getMessage', _p);
-        })
-
     }
 
     function returnRoomUsers(_d) {
@@ -321,16 +291,6 @@ function myChat(io) {
     }
 }
 
-function currentDate() {
-    var date = new Date();
-    var year = date.getFullYear();
-    var month = ("0" + (date.getMonth() + 1)).slice(-2);
-    var day = ("0" + date.getDate()).slice(-2);
-    var hours = ("0" + date.getHours()).slice(-2);
-    var minutes = ("0" + date.getMinutes()).slice(-2);
-    var seconds = ("0" + date.getSeconds()).slice(-2);
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
 
 function createUserRooms() {
     var _users = _users2 = users,
@@ -344,7 +304,7 @@ function createUserRooms() {
                     user2 = _users2[j + v].account;
 
                 rooms.push({
-                    room_id: _createUserRoomId(user1, user2),
+                    room_id: gp.createUserRoomId(user1, user2),
                     room_name: null,
                     users: [user1, user2],
                     type: 0
@@ -352,15 +312,7 @@ function createUserRooms() {
             }
         }
         v++;
-    }
-
-    function _createUserRoomId(_id, _id2) {
-        var _t = [_id, _id2];
-        _t.sort(function(a, b) {
-            return a > b
-        })
-        return _t[0] + "_" + _t[1];
-    }
+    }   
 }
 
 
