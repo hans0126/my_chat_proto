@@ -1,0 +1,11 @@
+<div class='iconBtn' ng-click="visibleBtn()">
+    <i class="fa fa-comment-o" aria-hidden="true"></i>
+</div>
+<ul ng-show='minimizeVisible'>
+    <li ng-repeat='val in hiddenRooms' >
+        <div class='room_name' ng-click='openCurrentRoom(val)'>{{val.room_name}}</div>
+        <div class='close_btn' ng-click='closeCurrent(val)'>
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </div>
+    </li>
+</ul>

@@ -43,7 +43,7 @@
      position: relative;
      float: right;
      width: 260px;
-     height: 26px;
+     height: 40px;
      margin-left: 9px;
      font-size: 13px;
  }
@@ -105,7 +105,7 @@
      background: #aaa;
  }
  
- .panel ul {
+ #chatWrap ul {
      margin: 0;
      padding: 0;
      list-style: none;
@@ -189,9 +189,7 @@
  }
  
  .msgList >li {
-     position: relative; 
-    
-    
+     position: relative;
  }
  
  .msgList >li::after {
@@ -208,14 +206,14 @@
      float: right;
  }
  
-.tip {
+ .tip {
      position: absolute;
      top: 0;
      right: 0;
      background: #333;
-     color:#FFF;
+     color: #FFF;
  }
-
+ 
  .writeBox {
      border: 1px solid #555;
      width: 100%;
@@ -296,13 +294,61 @@
      float: left;
      font-size: 20px;
  }
-
-.room_users_list {
+ 
+ .room_users_list {
      position: absolute;
      left: 0;
      right: 0;
      top: 40px;
-     z-index:40;
+     z-index: 40;
      background: #FFF;
      border: 1px solid #333;
-}
+ }
+ 
+ #minimize-group {
+     float: right;
+     width: 40px;
+     position: relative;
+ }
+ 
+ #minimize-group > .iconBtn {
+     display: table-cell;
+     width: 40px;
+     height: 40px;
+     vertical-align: middle;
+     text-align: center;
+     border: 1px solid #999;
+ }
+ 
+ #minimize-group > ul {
+     position: absolute;
+     bottom: 50px;
+     right: 0;
+     width: 100px;
+     border: 1px solid #777;
+     background: #FFF;
+     padding: 5px;
+ }
+ 
+ 
+
+ #minimize-group > ul > li {
+     position: relative;
+ }
+ 
+ #minimize-group > ul > li::after {
+     content: "";
+     display: block;
+     clear: both;
+ }
+ 
+ #minimize-group .room_name {
+     text-overflow: ellipsis;
+     overflow: hidden;
+     width: 4em;
+     float: left;
+ }
+ 
+ #minimize-group .close_btn {
+     float: right;
+ }

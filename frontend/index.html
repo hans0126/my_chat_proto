@@ -8,19 +8,19 @@
     <link rel="stylesheet" href="css/default.css">
 </head>
 
-<body> 
+<body>
     <div id="chatWrap" ng-app='app' ng-controller='chat as c'>
         <div controll-panel></div>
-        <div chat-panel="val" chat-emotions = "emotions" ng-repeat="val in displayRooms" chat-emotionicons="emotionIcons"></div>
-
+        <div chat-panel="val" chat-emotions="emotions" ng-repeat="val in displayRooms" chat-emotionicons="emotionIcons"></div>
         <div debug class='debug'>{{users}}{{controllPanel}}</div>
+        <div id='minimize-group' minimize-group ng-show='hiddenRooms.length > 0'></div>
     </div>
     <script src="/socket.io.js"></script>
     <script src="/socket.io-file-client.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/lodash/lodash.js"></script>
     <script src='bower_components/angular/angular.min.js'></script>
-    <script src='lib/chat_angular.js'></script>   
+    <script src='lib/chat_angular.js'></script>
 </body>
 
 </html>

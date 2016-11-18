@@ -9,6 +9,7 @@
            $rootScope.users = [];
            $rootScope.account = {};
            $rootScope.displayRooms = []; //active rooms
+           $scope.hiddenRooms = []
            $scope.rooms = []; // root rooms
            $scope.rosterRooms = []; // unit rooms
            $scope.projectRooms = [];
@@ -20,12 +21,45 @@
            /*
         
       rooms -
-            |- rosterRooms
-                    |- rosterRoomsD ----|
-            |- projectRooms             |---> displayRooms
-                    |- projectRoomsD ---|
+            |-> rosterRooms
+                    |-> rosterRoomsD ----|
+                                         |     
+            |-> projectRooms             |---> displayRooms (super)
+                    |-> projectRoomsD ---|          |^
+                                                    |v
+                                               hiddenRooms
 
        */
+
+           $scope.openRoom = function(_room_id) {
+
+               var _room = _.find($scope.rooms, {
+                   room_id: _room_id
+               });
+
+               _room.unReadCount = 0;
+
+               if (!_room.initLoad) {
+                   socket.emit('getHistoryMsg', {
+                       room_id: _room_id
+                   });
+               }
+
+               if (!_.find($rootScope.displayRooms, {
+                       room_id: _room_id
+                   })) {
+
+
+
+                   if ($rootScope.displayRooms.length > 2) {
+                       $scope.hiddenRooms.push($rootScope.displayRooms[0]);
+                       $rootScope.displayRooms.splice(0, 1);
+                   }
+
+                   $rootScope.displayRooms.push(_room);
+               }
+           }
+
 
            socket.on('connected', function(_d) {
                angular.extend($rootScope.users, _d.users);
@@ -40,10 +74,8 @@
                })
            })
 
-           socket.on('login', function(_d) {
-               // _self.currentAccount = global.account = _d;
+           socket.on('login', function(_d) {              
                $scope.account = $rootScope.account = _d;
-
            })
 
            socket.on('updateUsersList', function(_d) {
@@ -101,6 +133,19 @@
                        room_id: _d.room_id
                    });
                }
+           })
+
+
+           socket.on('getPreMsg', function(_d) {
+            
+               _room = _.find($scope.rooms, {
+                   room_id: _d.room_id
+               });            
+
+               _.forEach(_d.messages, function(o) {
+                   o.past = true;
+                   _room.msg.unshift(o);
+               })
            })
 
            socket.on('readMessage', function(_d) {
@@ -198,27 +243,7 @@
                    })
                }
 
-               scope.openRoom = function(_room_id) {
 
-                   var _room = _.find(scope.rooms, {
-                       room_id: _room_id
-                   });
-
-                   _room.unReadCount = 0;
-
-                   if (!_room.initLoad) {
-                       socket.emit('getHistoryMsg', {
-                           room_id: _room_id
-                       });
-                   }
-
-                   if (!_.find(scope.displayRooms, {
-                           room_id: _room_id
-                       })) {
-
-                       scope.displayRooms.push(_room);
-                   }
-               }
 
                socket.on('getRooms', function(_d) {
 
@@ -494,10 +519,7 @@
                                owner: scope.chat.account
                            }
                        });
-
-
                    }
-
 
                    scope.contentBody.bind('scroll', function() {
 
@@ -520,6 +542,10 @@
 
                    socket.on('getPreMsg', function(_d) {
 
+                       if (_d.room_id != scope.chat.room_id) {
+                           return
+                       }
+
                        if (_d.messages.length > 0) {
                            setTimeout(function() {
                                readyToLoadPreMsg = true;
@@ -527,15 +553,7 @@
                        }
 
 
-
-                       _.forEach(_d.messages, function(o) {
-                           o.past = true;
-                           scope.chat.msg.unshift(o);
-                       })
                    })
-
-
-
                }
            }
        }
@@ -735,6 +753,41 @@
        }
 
    }])
+
+   app.directive('minimizeGroup', function() {
+
+       return {
+           restrict: 'A',
+           scope: true,
+           templateUrl: 'template/hidden_list.html',
+           link: function(scope, element, attrs) {
+               scope.closeCurrent = function(_v) {
+                   var _i = -1;
+                   _.forEach(scope.hiddenRooms, function(val, idx) {
+
+                       if (_v.room_id == val.room_id) {
+                           _i = idx
+                           return
+                       }
+
+                   })
+                   scope.hiddenRooms.splice(_i, 1);
+               }
+
+               scope.openCurrentRoom = function(_v) {
+                   scope.closeCurrent(_v);
+                   scope.openRoom(_v.room_id);
+               }
+
+               scope.minimizeVisible = false;
+
+               scope.visibleBtn = function (){
+                  scope.minimizeVisible = !scope.minimizeVisible;
+               }
+           }
+       }
+
+   })
 
    app.directive('debug', function() {
        return {
