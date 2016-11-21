@@ -1,7 +1,7 @@
 <div class='panel chatControllerPanel' ng-class='controllPanel.class'>
     <div href="#" class='minimizeBtn' ng-click='controllPanel.minimizeAction()'>controller panel</div>
     <div class='panelContent' ng-show="!controllPanel.minimize">
-        <div id='chatControllerHeader'>
+        <div class='chatControllerHeader'>
             <ul class="headerIcons">
                 <li>
                     <div ng-click='changeTab(0)'>
@@ -21,14 +21,17 @@
             </ul>
             <div class='contentTitle'>{{account.name}}</div>
         </div>
-        <div id='chatControllerContent'>
-            <div id="loginPanel" ng-if='!account.account'>
+        <div class='chatControllerContent'>
+            <div class="loginPanel" ng-if='!account.account'>
                 <ul ng-repeat="val in users">
                     <li ng-click='login(val.account)'>{{val.name}}</li>
                 </ul>
             </div>
             <div ng-if='account.account' ng-switch='tab'>
                 <div ng-switch-when='0' roster-list="rosterRooms" open-event="openRoom"></div>
+                <div ng-switch-when='1' roster-list="projectRooms" open-event="openRoom"></div>
+    
+                <!--
                 <div ng-switch-when='1'>
                     <ul class='roomList'>
                         <li ng-repeat="val in projectRoomsD" ng-click='openRoom(val.room_id)'>
@@ -41,6 +44,7 @@
                         </li>
                     </ul>
                 </div>
+                -->
             </div>
         </div>
     </div>

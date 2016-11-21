@@ -1,5 +1,6 @@
    var app = angular.module('app', []);
-   var socketUrl = 'ws://192.168.10.49:3000';
+   var socketUrl = 'ws://evpn.ittms.com.tw:5280';
+   var _oprion = { query: "memberid=08073&passwd=037441" };
    app.controller('chat', ['$scope',
        'socket',
        '_',
@@ -174,10 +175,24 @@
                _msg.read_count = _d.read_count;
            });
 
+           /**/
+           socket.on('login', function(msg) {
+               console.log(msg)
+           });
 
-           socket.on('testaaa', function(_d) {
-               console.log(_d);
-           })
+           socket.on('logout', function(msg) {
+               console.log(msg)
+           });
+
+
+           socket.on('personres', function(msg) {
+               console.log(msg);
+           });
+
+           socket.on('organizeres', function(msg) {
+               console.log(msg);
+           });
+
        }
    ]);
 
@@ -337,7 +352,7 @@
                    emotions: "=chatEmotions",
                    emotionIcons: "=chatEmotionicons"
                },
-               templateUrl: "template/chat_panel.html",
+               templateUrl: "template/chat_view.html",
                link: function(scope, element, attrs) {
 
                    // var contentBody = element.find('.contentBody');
@@ -354,14 +369,6 @@
                    }
 
                    scope.usersShow = false;
-
-                   scope.usersDetail = [];
-                   _.forEach(scope.chat.users, function(_val, _idx) {
-                       _re = _.find($rootScope.users, { account: _val });
-                       if (_re) {
-                           scope.usersDetail[_val] = _re;
-                       }
-                   })
 
                    //when readyToLoadPreMsg is true then get data
                    //prevent Multiple trigger
@@ -585,33 +592,16 @@
 
    app.directive('tip', function() {
 
-       function tripDate(_d) {
-
-           var _d = _d;
-           var _re = _d.match(/(^\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-
-           return {
-               date: _re[1] + "年" + _re[2] + "月" + _re[3] + "日",
-               time: _re[4] + "時" + _re[5] + "分"
-           }
-
-       }
-
-
        return {
            restrict: "A",
            scope: {
                tip: "=tip"
            },
-           template: "<div>{{nd.date}} {{nd.time}}</div><div>已讀:{{tip.read_count}}</div>",
+           template: "<div>{{tip.create_date}}</div><div>已讀:{{tip.read_count}}</div>",
            link: function(scope, element, attrs) {
 
                var _right,
                    _left;
-
-
-
-               scope.nd = tripDate(scope.tip.create_date);
 
                if (scope.tip.owner) {
                    _left = "100%";
@@ -634,80 +624,52 @@
    app.directive('singleMsg', ['$compile',
        'socket',
        '$rootScope',
-       '$sce',
-       '$timeout',
-       function($compile, socket, $rootScope, $sce, $timeout) {
+       function($compile, socket, $rootScope) {
 
            function tripImg(_msg) {
                if (!_msg) {
                    return
                }
-
-               var _re = _msg.match(/^\[(.*)\]$/),
-                   _o = {
-                       type: null,
-                       msg: null
-                   };
-
+               var _re = _msg.match(/^\[(.*)\]$/);
                if (_re) {
                    _re = _re[1];
                    _re = _re.split(":");
 
                    switch (_re[0]) {
                        case "img":
-                           _o.type = "img";
-                           _o.msg = "<img src='file/" + _re[1] + "' imageonload />";
+                           _msg = "<img src='file/" + _re[1] + "' imageonload />";
                            break;
 
                        case "emotion":
-                           _o.type = "img";
-                           _o.msg = "<img src='images/" + _re[1] + "' imageonload />";
+                           _msg = "<img src='images/" + _re[1] + "' imageonload />";
                            break;
                    }
-               } else {
-                   _o.type = "text";
-                   _o.msg = _msg;
-
                }
-               return _o;
+               return _msg;
            }
 
            return {
                restrict: "A",
                scope: {
                    msg: "=singleMsg",
-                   tip: "=tipStatus",
-                   contentBody: "=contentBody",
-                   usersDetail: "=usersDetail"
+                   tip: "=tips",
+                   contentBody: "=contentBody"
                },
                link: function(scope, element, attrs) {
 
+
                    scope.tipVisible = true;
                    scope.ulContent = element.parent();
-                   //scope.message = $sce.trustAsHtml(tripImg(scope.msg.msg));
-
-                   var message = tripImg(scope.msg.msg),
-                       contentType = '';
-
-                   if (message.type != "text") {
-                       contentType = 'non-text';
-                   }
-
-
-                   scope.message = $sce.trustAsHtml(message.msg);
-
+                   // console.log(scope.contentBody);
                    var _t = "";
                    if ($rootScope.account.account == scope.msg.owner) {
                        element.addClass('owner');
-                       _t += "<div class='msg_content "+contentType+"' ng-bind-html='message'></div>";
                    } else {
-                       element.addClass('other');
-                       scope.userName = scope.usersDetail[scope.msg.owner].name;
-                       scope.userImg = scope.usersDetail[scope.msg.owner].img;
-                       _t += "<div class='img'><img ng-src='{{userImg}}'/></div><div class='other_style'><div class='msg_owner'>{{userName}}</div><div class='msg_content "+contentType+"' ng-bind-html='message'></div></div>";
+                       _t += "<div>{{msg.owner}}:</div>";
                    }
 
-                   //console.log(scope.message)
+                   _t += "<div class='msg_content'>" + tripImg(scope.msg.msg) + "</div>";
+
 
                    var el = angular.element(_t);
                    element.append(el);
@@ -739,6 +701,8 @@
                        scope.$apply();
                    })
 
+
+
                    socket.emit('readMessage', {
                        id: scope.msg.id,
                        account: $rootScope.account.account,
@@ -747,10 +711,8 @@
 
                    //if past msg scroll bar don't move to bottom 
                    if (!scope.msg.past) {
-                       $timeout(function() {
-                           var sHeight = element.parent()[0].scrollHeight;
-                           scope.contentBody[0].scrollTop = sHeight;
-                       })
+                       var sHeight = element.parent()[0].scrollHeight;
+                       scope.contentBody[0].scrollTop = sHeight + 100;
                    }
                }
            }
@@ -783,7 +745,7 @@
                rosterList: "=rosterList",
                openRoom: "=openEvent"
            },
-           templateUrl: "template/roster_list.html",
+           templateUrl: "template/roster_list_panel.html",
            link: function(scope, element, attrs) {
                scope.rosterListD = scope.rosterList;
                scope.text_filter = null;
@@ -828,7 +790,7 @@
        return {
            restrict: 'A',
            scope: true,
-           templateUrl: 'template/minimize_group.html',
+           templateUrl: 'template/hidden_list.html',
            link: function(scope, element, attrs) {
                scope.closeCurrent = function(_v) {
                    var _i = -1;
@@ -867,7 +829,7 @@
    })
 
    app.factory('socket', function($rootScope) {
-       var socket = io.connect(socketUrl);
+       var socket = io.connect(socketUrl, _oprion);
        var socketIOFile = new SocketIOFileClient(socket);
        return {
            on: function(eventName, callback) {

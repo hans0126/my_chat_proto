@@ -1,0 +1,12 @@
+<input type="text" ng-model="text_filter" class="search_input" placeholder="搜尋關鍵字">
+<ul class='roomList'>
+    <li ng-repeat="val in rosterListD" ng-click='openRoom(val.room_id)'>
+        <div class='chatThumbImg'>
+            <img src="images/logo.png" alt="">
+        </div>
+        <div class='chatRoomListName'>
+            <div class="title">{{val.room_name}}<span ng-if='val.unReadCount'>({{val.unReadCount}})</span></div>
+            <div class='sub_title'>department</div>
+        </div>
+    </li>
+</ul>

@@ -1,8 +1,8 @@
 <div class='panel chatPanel' ng-class='chat.class' ng-style='chat.css'>
     <div class='minimizeBtn'>
-        <div ng-click='chat.minimizeAction()'>{{chat.room_name}}</div>
+        <div class='title' ng-click='chat.minimizeAction()'>{{chat.room_name}}</div>
         <div class='unreadBox' ng-if="chat.unReadCount>0">{{chat.unReadCount}}</div>
-        <div ng-click='chat.closePanel()'>
+        <div ng-click='chat.closePanel()' class="close_btn">
             <i class="fa fa-times" aria-hidden="true"></i>
         </div>
     </div>
@@ -31,14 +31,22 @@
         <div class='tip' tip='tip' ng-if='tip.visible'></div>
         <div class='contentBody'>
             <ul class="msgList">
-                <li single-msg="val" tips="tip" content-body="contentBody" ng-repeat="val in chat.msg"></li>
+                <li single-msg="val" tip-status="tip" content-body="contentBody" users-detail="usersDetail" ng-repeat="val in chat.msg"></li>
             </ul>
         </div>
         <div class='contentInputArea'>
             <ul class='chat_fn_bar'>
-                <li><i class="fa fa-star-half-o" aria-hidden="true" ng-click='triggerEmotionPanel()'></i></li>
-                <li ng-click='triggerEmotionIconPanel()'><i class="fa fa-smile-o" aria-hidden="true"></i></li>
-                <li><i class="fa fa-file-o" aria-hidden="true"></i></li>
+                <li ng-click='triggerEmotionPanel()'>
+                    <div>
+                        <i class="fa fa-star-half-o" aria-hidden="true"></i>
+                    </div>
+                </li>
+                <li ng-click='triggerEmotionIconPanel()'>
+                    <div><i class="fa fa-smile-o" aria-hidden="true"></i></div>
+                </li>
+                <li>
+                    <div><i class="fa fa-file-o" aria-hidden="true"></i></div>
+                </li>
             </ul>
             <div contenteditable="true" class="writeBox" chat-input='sendEvents' ng-model='userInput'></div>
         </div>

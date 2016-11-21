@@ -1,68 +1,61 @@
- * {
+ #chatWrap {
+     position: fixed;
+     bottom: 0;   
+     right: 0;
+     font-size: 14px;
+     width: 1200px;
+ }
+ 
+ #chatWrap ul {
+     margin: 0;
+     padding: 0;
+     list-style: none;
+ }
+ 
+ #chatWrap * {
      box-sizing: border-box;
  }
  
- .used {
-     color: #999;
- }
- 
- #rooms .content {
-     width: 400px;
-     height: 200px;
-     border: 1px solid #999;
-     overflow: scroll;
- }
- 
- .writeBox.hover {
+ #chatWrap .writeBox.hover {
      background: #aaa;
  }
  
- #img > img {
-     width: 70px;
-     display: block;
- }
- 
- .data_transfer {
-     width: 300px;
-     height: 300px;
-     border: 3px dashed #555555;
- }
- 
- .data_transfer.hover {
-     border: 3px dashed #aaa;
- }
- 
- #chatWrap {
-     position: fixed;
-     bottom: 0;
-     left: 0;
-     right: 0;
- }
- 
- .panel {
+ #chatWrap .panel {
      position: relative;
      float: right;
      width: 260px;
      height: 40px;
      margin-left: 9px;
-     font-size: 13px;
  }
  
- .panel.onMinimize {
+ #chatWrap .panel.onMinimize {
      width: 100px;
  }
  
- .minimizeBtn {
+ #chatWrap .minimizeBtn {
      position: absolute;
      bottom: 0;
      z-index: 30;
-     padding: 9px;
+     padding: 5px;
      background: #eee;
      border: 1px solid #aaa;
      width: 100px;
  }
  
- .unreadBox {
+ #chatWrap .minimizeBtn .title {
+     overflow: hidden;
+     width: 5em;
+     text-overflow: ellipsis;
+     float: left;
+     cursor: pointer;
+ }
+ 
+ #chatWrap .minimizeBtn .close_btn {
+     float: right;
+     cursor: pointer;
+ }
+ 
+ #chatWrap .unreadBox {
      position: absolute;
      border: 1px solid #F00;
      background: #aaa;
@@ -70,18 +63,18 @@
      left: 0;
  }
  
- .contentHeader {
+ #chatWrap .contentHeader {
      padding: 5px;
      background: #eee;
  }
  
- .contentHeader::after {
+ #chatWrap .contentHeader::after {
      content: "";
      display: block;
      clear: both;
  }
  
- .panelContent {
+ #chatWrap .panelContent {
      position: absolute;
      bottom: 0;
      left: 0;
@@ -92,51 +85,39 @@
      background: #FFF;
  }
  
- .contentBody {
-     height: 240px;
-     overflow-y: scroll
+ #chatWrap .contentBody {
+     height: 220px;
+     overflow-y: scroll;
+     overflow-x: hidden;
+     padding: 0 5px;
  }
  
- .contentInput {
-     width: 100%;
- }
- 
- .contentInput.hover {
-     background: #aaa;
- }
- 
- #chatWrap ul {
-     margin: 0;
-     padding: 0;
-     list-style: none;
- }
- 
- #chatControllerHeader {
+ #chatWrap .chatControllerHeader {
      height: 60px;
      padding: 5px;
      background: #efefef;
  }
  
- #chatControllerContent {
+ #chatWrap .chatControllerContent {
      height: 264px;
      overflow-y: scroll;
  }
  
- .headerIcons::after {
+ #chatWrap .headerIcons::after {
      content: "";
      display: block;
      clear: both;
  }
  
- .headerIcons > li {
+ #chatWrap .headerIcons > li {
      float: left;
  }
  
- .chatControllerPanel .headerIcons > li:last-child {
+ #chatWrap .chatControllerPanel .headerIcons > li:last-child {
      float: right;
  }
  
- .headerIcons div {
+ #chatWrap .headerIcons div {
      display: block;
      width: 25px;
      height: 25px;
@@ -146,81 +127,120 @@
      border: 1px solid #999;
  }
  
- .chatPanel .headerIcons {
+ #chatWrap .chatPanel .headerIcons {
      float: right;
  }
  
- .roomList {
-     border-bottom: 1px solid #aaa;
+ #chatWrap .roomList {
+     /* border-bottom: 1px solid #aaa;*/
  }
  
- .roomList > li::after {
+ #chatWrap .roomList > li::after {
      content: "";
      display: block;
      clear: both;
  }
  
- .roomList > li {}
- 
- .roomList > li:hover {
-     background: #aaa;
+ #chatWrap .roomList > li {
+     padding: 5px;
+     cursor: pointer;
  }
  
- .roomList .chatThumbImg {
+ #chatWrap .roomList > li:hover {
+     background: #efefef;
+ }
+ 
+ #chatWrap .roomList .chatThumbImg {
      float: left;
  }
  
- .roomList .chatRoomListName {
+ #chatWrap .roomList .chatRoomListName {
      margin-left: 40px;
  }
  
- .chatThumbImg {
+ #chatWrap .chatThumbImg {
      width: 32px;
      height: 32px;
      overflow: hidden;
      background: #FFF;
  }
  
- .chatThumbImg > img {
+ #chatWrap .chatThumbImg > img {
      max-width: 100%;
      max-height: 100%;
      display: block;
      margin: 0 auto;
  }
  
- .msgList >li {
-     position: relative;
+ #chatWrap .search_input {
+     display: block;
+     width: 100%;
  }
  
- .msgList >li::after {
+ #chatWrap .msgList >li {
+     position: relative;
+     margin-bottom: 10px;
+ }
+ 
+ #chatWrap .msgList >li::after {
      content: "";
      display: block;
      clear: both;
  }
  
- .msgList > li > div {
+ #chatWrap .msgList > li > div {
      float: left;
  }
  
- .msgList > li.owner > div {
+ #chatWrap .msgList > li.owner > div {
      float: right;
  }
  
- .tip {
+ #chatWrap .msgList > li.other > div.img {
+     width: 32px;
+     height: 32px;
+     position: absolute;
+     bottom: 0;
+     left: 0;
+ }
+ 
+ #chatWrap .msgList > li.other > div.img > img {
+     max-width: 100%;
+     max-height: 100%;
+     margin: 0 auto;
+     display: block;
+ }
+ 
+ #chatWrap .msgList > li.other > div.other_style {
+     margin-left: 40px;
+ }
+ 
+ #chatWrap .msgList .msg_content {
+     max-width: 75%;
+     word-break: break-all;
+ }
+ 
+ #chatWrap .msgList .msg_content > img {
+     max-width: 100%;
+ }
+ 
+ #chatWrap .tip {
      position: absolute;
      top: 0;
      right: 0;
      background: #333;
      color: #FFF;
+     z-index: 100;
  }
  
- .writeBox {
-     border: 1px solid #555;
+ #chatWrap .writeBox {
      width: 100%;
-     height: 2em;
+     height: 39px;
+     overflow-y: scroll;
+     overflow-x: hidden;
  }
  
- .debug {
+ #chatWrap .debug {
      border: 1px solid #333;
      position: fixed;
      max-width: 200px;
@@ -228,25 +248,32 @@
      left: 0;
  }
  
- .chat_fn_bar {
+ #chatWrap .chat_fn_bar {
      background: #eee;
+     height: 30px;
+     padding-top: 2px;
  }
  
- .chat_fn_bar::after {
+ #chatWrap .chat_fn_bar::after {
      content: "";
      display: block;
      clear: both;
  }
  
- .chat_fn_bar > li {
+ #chatWrap .chat_fn_bar > li {
      float: left;
-     width: 20px;
-     height: 20px;
-     text-align: center;
-     line-height: 20px;
+     left: 5px;
  }
  
- .emotion_panel {
+ #chatWrap .chat_fn_bar > li > div {
+     width: 26px;
+     height: 26px;
+     text-align: center;
+     vertical-align: middle;
+     display: table-cell;
+ }
+ 
+ #chatWrap .emotion_panel {
      position: absolute;
      left: 0;
      right: 0;
@@ -258,30 +285,30 @@
      overflow-x: hidden;
  }
  
- .emotion_panel ul::after {
+ #chatWrap .emotion_panel ul::after {
      content: "";
      display: block;
      clear: both;
  }
  
- .emotion_panel.emotion_pic ul > li {
+ #chatWrap .emotion_panel.emotion_pic ul > li {
      float: left;
      width: 33.33%;
  }
  
- .emotion_panel.emotion_pic ul > li > div {
+ #chatWrap .emotion_panel.emotion_pic ul > li > div {
      display: table-cell;
      vertical-align: middle;
      width: 80px;
      height: 80px;
  }
  
- .emotion_panel.emotion_pic ul > li > div > img {
+ #chatWrap .emotion_panel.emotion_pic ul > li > div > img {
      max-width: 100%;
      max-height: : 100%;
  }
  
- .emotion_panel .close_btn {
+ #chatWrap .emotion_panel .close_btn {
      position: absolute;
      top: 0;
      right: 0;
@@ -290,12 +317,12 @@
      text-align: center;
  }
  
- .emotion_panel.emotion_icon ul > li {
+ #chatWrap .emotion_panel.emotion_icon ul > li {
      float: left;
      font-size: 20px;
  }
  
- .room_users_list {
+ #chatWrap .room_users_list {
      position: absolute;
      left: 0;
      right: 0;
@@ -305,22 +332,23 @@
      border: 1px solid #333;
  }
  
- #minimize-group {
+ #chatWrap .minimize-group {
      float: right;
      width: 40px;
      position: relative;
  }
  
- #minimize-group > .iconBtn {
+ #chatWrap .minimize-group > .iconBtn {
      display: table-cell;
      width: 40px;
      height: 40px;
      vertical-align: middle;
      text-align: center;
      border: 1px solid #999;
+     cursor: pointer;
  }
  
- #minimize-group > ul {
+ #chatWrap .minimize-group > ul {
      position: absolute;
      bottom: 50px;
      right: 0;
@@ -330,25 +358,25 @@
      padding: 5px;
  }
  
- 
-
- #minimize-group > ul > li {
+ #chatWrap .minimize-group > ul > li {
      position: relative;
  }
  
- #minimize-group > ul > li::after {
+ #chatWrap .minimize-group > ul > li::after {
      content: "";
      display: block;
      clear: both;
  }
  
- #minimize-group .room_name {
+ #chatWrap .minimize-group .room_name {
      text-overflow: ellipsis;
      overflow: hidden;
      width: 4em;
      float: left;
+     cursor: pointer;
  }
  
- #minimize-group .close_btn {
+ #chatWrap .minimize-group .close_btn {
      float: right;
+     cursor: pointer;
  }

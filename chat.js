@@ -5,9 +5,9 @@ var _ = require('lodash');
 var modelMsg = require('./models/msg');
 var gp = require("./global_process"); //globel 
 
-gp.users = [{ name: "hans", account: "08073", connect_id: null },
-    { name: "ben", account: "08072", connect_id: null },
-    { name: "eric", account: "08071", connect_id: null }
+gp.users = [{ name: "hans", account: "08073", connect_id: null,img:"http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008666" },
+    { name: "ben", account: "08072", connect_id: null,img:"http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008684" },
+    { name: "eric", account: "08071", connect_id: null ,img:"http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008665"}
 ]
 
 gp.emotions = [{ code: "0001", filename: "9615145.png" }, { code: "0002", filename: "949891.png" }];
