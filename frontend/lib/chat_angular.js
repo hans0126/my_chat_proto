@@ -9,10 +9,12 @@
            $rootScope.users = [];
            $rootScope.account = {};
            $rootScope.displayRooms = []; //active rooms
+           $rootScope.historyRooms = [];
            $scope.hiddenRooms = []
-           $scope.rooms = []; // root rooms
+           $rootScope.rooms = []; // root rooms
            $scope.rosterRooms = []; // unit rooms
            $scope.projectRooms = [];
+
            $scope.companyRooms = [];
            $scope.emotions = [];
            $scope.emotionIcons = ["😃", "😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "😗", "😙", "😚", "🙂", "🤗", "🤔", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "🤓", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "😬", "😰", "😱", "😳", "😵", "😡", "😠", "😇", "🤠", "🤡", "🤥", "😷", "🤒", "🤕", "🤢", "🤧", "😈", "👿"];
@@ -33,7 +35,7 @@
 
            $scope.openRoom = function(_room_id) {
 
-               var _room = _.find($scope.rooms, {
+               var _room = _.find($rootScope.rooms, {
                    room_id: _room_id
                });
 
@@ -48,8 +50,6 @@
                if (!_.find($rootScope.displayRooms, {
                        room_id: _room_id
                    })) {
-
-
 
                    if ($rootScope.displayRooms.length > 2) {
                        $scope.hiddenRooms.push($rootScope.displayRooms[0]);
@@ -68,7 +68,7 @@
                    console.log("die");
 
                    $rootScope.displayRooms = [];
-                   $scope.rooms = [];
+                   $rootScope.rooms = [];
                    $scope.projectRooms = [];
                    $scope.account = {};
                })
@@ -90,7 +90,7 @@
 
            socket.on('getHistoryMsg', function(_d) {
 
-               var _room = _.find($scope.rooms, {
+               var _room = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                })
 
@@ -100,7 +100,7 @@
            });
 
            socket.on('getUnReadMessage', function(_d) {
-               _room = _.find($scope.rooms, {
+               _room = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                });
 
@@ -113,7 +113,7 @@
 
            socket.on('getUnReadMessageCount', function(_d) {
 
-               _room = _.find($scope.rooms, {
+               _room = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                });
 
@@ -131,7 +131,7 @@
                } else {
 
                    if (_d.owner != $rootScope.users.account) {
-                       _re2 = _.find($scope.rooms, { room_id: _d.room_id });
+                       _re2 = _.find($rootScope.rooms, { room_id: _d.room_id });
                        _re2.unReadCount++;
                    }
 
@@ -146,10 +146,21 @@
 
            })
 
+           socket.on('roomsHistory', function(_d) {
+               _.forEach(_d, function(_val, _idx) {
+                   _re = _.find($rootScope.rooms, { room_id: _val._id });
+
+                   if (_re) {
+                       _re.ownerLastPost = new Date(_val.create_date);
+                       $rootScope.historyRooms.push(_re);
+                   }
+               })
+           })
+
 
            socket.on('getPreMsg', function(_d) {
 
-               _room = _.find($scope.rooms, {
+               _room = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                });
 
@@ -160,7 +171,7 @@
            })
 
            socket.on('readMessage', function(_d) {
-               _room = _.find($scope.rooms, {
+               _room = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                });
                _msg = _.find(_room.msg, {
@@ -200,6 +211,7 @@
                    unReadCount: 0,
                    minimize: false,
                    users: [],
+                   ownerLastPost: null,
                    css: { 'z-index': 100 },
                    minimizeAction: function() {
                        this.minimize = !this.minimize;
@@ -398,6 +410,10 @@
                                })
                                writeBox.html("");
                                scope.userInput = null;
+
+                               sortHistoryRooms(scope.chat.room_id);
+
+
                            }
 
                            if (e.shiftKey) {
@@ -459,6 +475,27 @@
                        }
 
                    })
+
+
+                   function sortHistoryRooms(_room_id) {
+                    
+
+                       var _re = _.find($rootScope.rooms, { room_id: _room_id });
+
+                       _re.ownerLastPost = new Date();
+
+                       var _room = _.find($rootScope.historyRooms, { room_id: _room_id });
+
+                      
+
+                       if (!_room) {
+                           $rootScope.historyRooms.push(_re);
+                       }
+
+                       $rootScope.historyRooms.sort(function(a, b) {
+                           return a.ownerLastPost < b.ownerLastPost
+                       })
+                   }
 
                    function stripTag(_t) {
                        // console.log(_t);
@@ -699,12 +736,12 @@
                    var _t = "";
                    if ($rootScope.account.account == scope.msg.owner) {
                        element.addClass('owner');
-                       _t += "<div class='msg_content "+contentType+"' ng-bind-html='message'></div>";
+                       _t += "<div class='msg_content " + contentType + "' ng-bind-html='message'></div>";
                    } else {
                        element.addClass('other');
                        scope.userName = scope.usersDetail[scope.msg.owner].name;
                        scope.userImg = scope.usersDetail[scope.msg.owner].img;
-                       _t += "<div class='img'><img ng-src='{{userImg}}'/></div><div class='other_style'><div class='msg_owner'>{{userName}}</div><div class='msg_content "+contentType+"' ng-bind-html='message'></div></div>";
+                       _t += "<div class='img'><img ng-src='{{userImg}}'/></div><div class='other_style'><div class='msg_owner'>{{userName}}</div><div class='msg_content " + contentType + "' ng-bind-html='message'></div></div>";
                    }
 
                    //console.log(scope.message)

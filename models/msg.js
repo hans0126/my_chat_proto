@@ -5,7 +5,7 @@ var msgSchema = mongoose.Schema({
     room_id: String,
     msg: String,
     users: [],
-    create_date: Date,
+    create_date: { type: Date, default: Date.now },
     id: String,
     read_count: {
         type: Number,

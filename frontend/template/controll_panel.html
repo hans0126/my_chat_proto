@@ -14,6 +14,11 @@
                     </div>
                 </li>
                 <li>
+                    <div ng-click='changeTab(2)'>
+                        <i class="fa fa-clock-o" aria-hidden="true"></i>
+                    </div>
+                </li>
+                <li>
                     <div ng-click='controllPanel.minimizeAction()'>
                         <i class="fa fa-window-minimize" aria-hidden="true"></i>
                     </div>
@@ -30,21 +35,7 @@
             <div ng-if='account.account' ng-switch='tab'>
                 <div ng-switch-when='0' roster-list="rosterRooms" open-event="openRoom"></div>
                 <div ng-switch-when='1' roster-list="projectRooms" open-event="openRoom"></div>
-    
-                <!--
-                <div ng-switch-when='1'>
-                    <ul class='roomList'>
-                        <li ng-repeat="val in projectRoomsD" ng-click='openRoom(val.room_id)'>
-                            <div class='chatThumbImg'>
-                                <img src="images/logo.png" alt="">
-                            </div>
-                            <div class='chatRoomListName'>{{val.room_name}}
-                                <span ng-if='val.unReadCount'>({{val.unReadCount}})</span>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                -->
+                <div ng-switch-when='2' roster-list="historyRooms" open-event="openRoom"></div>
             </div>
         </div>
     </div>

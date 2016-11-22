@@ -5,10 +5,22 @@ var _ = require('lodash');
 var modelMsg = require('./models/msg');
 var gp = require("./global_process"); //globel 
 
-gp.users = [{ name: "hans", account: "08073", connect_id: null,img:"http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008666" },
-    { name: "ben", account: "08072", connect_id: null,img:"http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008684" },
-    { name: "eric", account: "08071", connect_id: null ,img:"http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008665"}
-]
+gp.users = [{
+    name: "hans",
+    account: "08073",
+    connect_id: null,
+    img: "http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008666"
+}, {
+    name: "ben",
+    account: "08072",
+    connect_id: null,
+    img: "http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008684"
+}, {
+    name: "eric",
+    account: "08071",
+    connect_id: null,
+    img: "http://www.hsihung.com.tw/intranet/pic_travel/show.asp?p_id=P000008665"
+}]
 
 gp.emotions = [{ code: "0001", filename: "9615145.png" }, { code: "0002", filename: "949891.png" }];
 
@@ -50,7 +62,7 @@ function myChat(io) {
 
     io.on('connection', function(socket) {
         var clientIp = socket.request.connection.remoteAddress;
-
+        var rooms_history;
         gp.user = socket;
 
         socket.emit('connected', { users: users });
@@ -63,7 +75,7 @@ function myChat(io) {
             var _currentUser = _.find(users, { account: _d.account });
             _currentUser.connect_id = socket.id;
 
-           
+
             //find duplicate login, renew this
             var _idx = -1;
             _.forEach(online_users, function(data, idx) {
@@ -76,7 +88,6 @@ function myChat(io) {
             online_users.splice(_idx, 1);
             online_users.push({ account: _currentUser.account, socket: socket });
 
-
             //put login message
             socket.emit('login', _currentUser);
             //change user list
@@ -88,20 +99,30 @@ function myChat(io) {
                     socket.join(_v.room_id);
                     _userInRoom.push(_v);
                     returnRoomUsers(_v.room_id);
-                }
+                }               
             })
+
             //join room (1 by 1)
             _.forEach(users, function(_v) {
                 if (_v.account != _currentUser.account) {
-                    var _room_id = gp.createUserRoomId(_currentUser.account,_v.account);
-                    socket.join(_room_id);                          
-                }
+                    var _room_id = gp.createUserRoomId(_currentUser.account, _v.account);
+                    socket.join(_room_id);
+                }               
             })
 
             socket.broadcast.emit('attention', _currentUser.account + ' online');
 
             socket.emit('getRooms', { rooms: _userInRoom });
             socket.emit('emotions', emotions);
+
+            modelMsg.aggregate([{ $match: { owner: _currentUser.account } },
+                { $group: { _id: "$room_id", create_date: { $last: "$create_date" } } },
+                { $sort: { create_date: 1 } }
+            ]).exec(function(err, re) {
+                rooms_history = re;
+                socket.emit('roomsHistory', rooms_history);
+            });
+
 
             socket.on('disconnect', function() {
                 _currentUser.connect_id = null;
@@ -116,34 +137,12 @@ function myChat(io) {
                 });
 
                 online_users.splice(_idx, 1);
-
-                /*
-                var _disconnectUser;
-                for (var i = 0; i < users.length; i++) {
-                    if (users[i].connect_id == socket.id) {
-                        users[i].connect_id = null;
-                        _disconnectUser = users[i];
-                        io.emit('updateUsersList', { users: users });
-                        break;
-                    }
-                }
-                
-                */
-
-                //renew users status
-                /*
-                for (var key in rooms) {
-                    if (rooms[key].indexOf(_disconnectUser.account) > -1) {
-                        returnRoomUsers(key);
-                    }
-                }
-                */
             });
 
 
             socket.on('sendMessage', function(_d) {
 
-                gp.createMsgAndBrodcast(io,_d.owner, _d.room_id, _d.text);
+                gp.createMsgAndBrodcast(io, _d.owner, _d.room_id, _d.text);
             })
 
             socket.on('readMessage', function(_d) {
@@ -159,7 +158,7 @@ function myChat(io) {
                         }
                     }, {
                         $set: {
-                            'users.$.read_time': gp.currentDate()
+                            'users.$.read_time': new Date()
                         },
                         $inc: {
                             read_count: 1
@@ -270,7 +269,7 @@ function myChat(io) {
         fs.rename(`${data.path}/${data.name}`, `${data.path}/${newFileName}`, function(err) {
             if (err) throw err;
             //console.log(newFileName);
-            gp.createMsgAndBrodcast(io,_d.owner, _d.room_id, `[img:${newFileName}]`);
+            gp.createMsgAndBrodcast(io, _d.owner, _d.room_id, `[img:${newFileName}]`);
         })
     }
 
@@ -312,7 +311,7 @@ function createUserRooms() {
             }
         }
         v++;
-    }   
+    }
 }
 
 

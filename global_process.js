@@ -14,7 +14,7 @@ module.exports = {
             room_id: _room_id,
             msg: _msg,
             users: [],
-            create_date: this.currentDate(),
+           // create_date: this.currentDate(),
             id: randomstring.generate()
         }
 
