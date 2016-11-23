@@ -7,6 +7,7 @@
        function($scope, socket, _, $rootScope) {
            var _self = this;
            $rootScope.users = [];
+           $rootScope.usersMap = {};
            $rootScope.account = {};
            $rootScope.displayRooms = []; //active rooms
            $rootScope.historyRooms = [];
@@ -18,6 +19,8 @@
            $scope.companyRooms = [];
            $scope.emotions = [];
            $scope.emotionIcons = ["😃", "😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "😗", "😙", "😚", "🙂", "🤗", "🤔", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "🤓", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "😬", "😰", "😱", "😳", "😵", "😡", "😠", "😇", "🤠", "🤡", "🤥", "😷", "🤒", "🤕", "🤢", "🤧", "😈", "👿"];
+
+
 
 
            /*
@@ -33,13 +36,13 @@
 
        */
 
-           $scope.openRoom = function(_room_id) {
+           $rootScope.openRoom = function(_room_id) {
 
                var _room = _.find($rootScope.rooms, {
                    room_id: _room_id
                });
 
-               _room.unReadCount = 0;
+               // _room.unReadCount = 0;
 
                if (!_room.initLoad) {
                    socket.emit('getHistoryMsg', {
@@ -63,6 +66,10 @@
 
            socket.on('connected', function(_d) {
                angular.extend($rootScope.users, _d.users);
+
+               _.forEach($rootScope.users, function(_val, _idx) {
+                   $rootScope.usersMap[_val.account] = _val;
+               })
 
                socket.on('disconnect', function() {
                    console.log("die");
@@ -121,28 +128,18 @@
            })
 
            socket.on('getMessage', function(_d) {
-               //has displayed
-               _re = _.find($rootScope.displayRooms, {
+               //add msg
+
+               _re = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                });
 
-               if (_re && !_re.minimize) {
-                   _re.msg.push(_d);
-               } else {
-
-                   if (_d.owner != $rootScope.users.account) {
-                       _re2 = _.find($rootScope.rooms, { room_id: _d.room_id });
-                       _re2.unReadCount++;
-                   }
-
-                   /*
-                    socket.emit('getUnReadMessageCount', {
-                        account: $scope.account.account,
-                        room_id: _d.room_id
-                    });
-                   */
+               _re.msg.push(_d);
+               // owner not current user 
+               if (_d.owner != $rootScope.account.account) {
+                   var _room = _.find($rootScope.displayRooms, { room_id: _d.room_id });
+                   _re.unReadCount++;
                }
-
 
            })
 
@@ -171,6 +168,8 @@
            })
 
            socket.on('readMessage', function(_d) {
+
+
                _room = _.find($rootScope.rooms, {
                    room_id: _d.room_id
                });
@@ -178,17 +177,21 @@
                    id: _d.id
                });
 
+
                if (!_msg) {
                    return;
                }
 
                _msg.read_count = _d.read_count;
+
+               //read user not currrent user and  msg owner not current user               
+               if (_d.read_user == $rootScope.account.account) {
+                   if (_msg.owner != $rootScope.account.account) {
+                       _room.unReadCount--;
+                   }
+               }
            });
 
-
-           socket.on('testaaa', function(_d) {
-               console.log(_d);
-           })
        }
    ]);
 
@@ -219,15 +222,6 @@
                            this.class = 'onMinimize';
                        } else {
                            this.class = null;
-                           //    var _room = this.room;
-                           if (this.unReadCount > 0) {
-                               socket.emit('getUnReadMessage', {
-                                   account: scope.account.account,
-                                   room_id: this.room_id
-                               })
-                           }
-
-                           // this.unReadCount = 0;
                        }
                    },
                    class: null,
@@ -235,11 +229,6 @@
                        var _idx = _.findIndex(scope.displayRooms, {
                            room_id: this.room_id
                        });
-                       /*
-                        if (this.minimize) {
-                            this.minimizeAction();
-                        }
-                       */
 
                        scope.displayRooms.splice(_idx, 1);
                    }
@@ -367,13 +356,6 @@
 
                    scope.usersShow = false;
 
-                   scope.usersDetail = [];
-                   _.forEach(scope.chat.users, function(_val, _idx) {
-                       _re = _.find($rootScope.users, { account: _val });
-                       if (_re) {
-                           scope.usersDetail[_val] = _re;
-                       }
-                   })
 
                    //when readyToLoadPreMsg is true then get data
                    //prevent Multiple trigger
@@ -478,7 +460,7 @@
 
 
                    function sortHistoryRooms(_room_id) {
-                    
+
 
                        var _re = _.find($rootScope.rooms, { room_id: _room_id });
 
@@ -486,7 +468,7 @@
 
                        var _room = _.find($rootScope.historyRooms, { room_id: _room_id });
 
-                      
+
 
                        if (!_room) {
                            $rootScope.historyRooms.push(_re);
@@ -714,8 +696,7 @@
                scope: {
                    msg: "=singleMsg",
                    tip: "=tipStatus",
-                   contentBody: "=contentBody",
-                   usersDetail: "=usersDetail"
+                   contentBody: "=contentBody"
                },
                link: function(scope, element, attrs) {
 
@@ -739,8 +720,8 @@
                        _t += "<div class='msg_content " + contentType + "' ng-bind-html='message'></div>";
                    } else {
                        element.addClass('other');
-                       scope.userName = scope.usersDetail[scope.msg.owner].name;
-                       scope.userImg = scope.usersDetail[scope.msg.owner].img;
+                       scope.userName = $rootScope.usersMap[scope.msg.owner].name;
+                       scope.userImg = $rootScope.usersMap[scope.msg.owner].img;
                        _t += "<div class='img'><img ng-src='{{userImg}}'/></div><div class='other_style'><div class='msg_owner'>{{userName}}</div><div class='msg_content " + contentType + "' ng-bind-html='message'></div></div>";
                    }
 
@@ -813,17 +794,33 @@
    })
 
 
-   app.directive('rosterList', function() {
+   app.directive('rosterList', ['$rootScope', function($rootScope) {
        return {
            restrict: "A",
            scope: {
                rosterList: "=rosterList",
-               openRoom: "=openEvent"
+               openRoom: "=openEvent",
+               switch: "=ngSwitchWhen"
            },
            templateUrl: "template/roster_list.html",
            link: function(scope, element, attrs) {
                scope.rosterListD = scope.rosterList;
                scope.text_filter = null;
+
+               scope.renderLastMsg = function(_val) {
+                   var name,
+                       msg,
+                       _m = _val.msg[_val.msg.length - 1];
+
+                   if (_m) {
+                       name = $rootScope.usersMap[_m.owner].name;
+                       msg = _m.msg;
+
+                       return name + " : " + msg
+                   }
+               }
+
+               scope.usersMap = $rootScope.usersMap;
 
                element.find('input[type=text]').bind('keydown', function(event) {
                    if (event.which === 13) {
@@ -838,7 +835,7 @@
 
            }
        }
-   })
+   }])
 
    app.directive('roomUsersList', ['$rootScope', function($rootScope) {
        return {
@@ -846,15 +843,23 @@
            scope: {
                users: "=roomUsersList"
            },
-           template: "<ul><li ng-repeat='val in userList'>{{val.name}}</li></ul>",
+           template: "<ul><li ng-repeat='(key,val) in userList' ng-click='openRoom(val)' >{{val.name}}</li></ul>",
            link: function(scope, element, attrs) {
-               scope.userList = [];
+               scope.userList = {};
+
                _.forEach(scope.users, function(o) {
-                   var _re = _.find($rootScope.users, { account: o });
-                   if (_re) {
-                       scope.userList.push(_re);
-                   }
+                   scope.userList[o] = $rootScope.usersMap[o];
                })
+
+               //scope.openRoom = $rootScope.openRoom;
+               scope.openRoom = function(_val) {
+                   var _c = [_val.account, $rootScope.account.account];
+                   _c.sort(function(a, b) {
+                       return a > b
+                   })
+
+                   $rootScope.openRoom(_c[0] + "_" + _c[1]);
+               }
            }
        }
 

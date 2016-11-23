@@ -168,7 +168,14 @@ function myChat(io) {
                     function(err, _p) {
 
                         if (_p) {
-                            io.in(_d.room_id).emit('readMessage', _p);
+                           //  console.log(_p);
+                            _p.set('read_user',_d.account);                           
+                            io.in(_d.room_id).emit('readMessage', {
+                                 room_id:_d.room_id,
+                                 id:_d.id,
+                                 read_user:_d.account,
+                                 read_count:_p.read_count
+                            });
                         }
                     })
 

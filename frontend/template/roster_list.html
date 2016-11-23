@@ -6,7 +6,11 @@
         </div>
         <div class='chatRoomListName'>
             <div class="title">{{val.room_name}}<span ng-if='val.unReadCount'>({{val.unReadCount}})</span></div>
-            <div class='sub_title'>department</div>
+            <div class='sub_title' ng-switch="switch">
+            	<div ng-switch-default>department</div>
+            	<div ng-switch-when="2" ng-bind="renderLastMsg(val)"></div>
+                
+            </div>
         </div>
     </li>
 </ul>

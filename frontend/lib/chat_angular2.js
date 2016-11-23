@@ -1,6 +1,6 @@
    var app = angular.module('app', []);
    var socketUrl = 'ws://evpn.ittms.com.tw:5280';
-   var _oprion = { query: "memberid=08073&passwd=037441" };
+   var _oprion = { query: "memberid=08029&passwd=782186" };
    app.controller('chat', ['$scope',
        'socket',
        '_',
@@ -60,6 +60,10 @@
                    $rootScope.displayRooms.push(_room);
                }
            }
+
+           socket.on('receive',function(_msg){
+                console.log(_msg);
+           })
 
 
            socket.on('connected', function(_d) {
@@ -177,7 +181,8 @@
 
            /**/
            socket.on('login', function(msg) {
-               console.log(msg)
+               console.log(msg);
+               console.log("成功!!")
            });
 
            socket.on('logout', function(msg) {
@@ -186,11 +191,11 @@
 
 
            socket.on('personres', function(msg) {
-               console.log(msg);
+              // console.log(msg);
            });
 
            socket.on('organizeres', function(msg) {
-               console.log(msg);
+             //  console.log(msg);
            });
 
        }
@@ -790,7 +795,7 @@
        return {
            restrict: 'A',
            scope: true,
-           templateUrl: 'template/hidden_list.html',
+           templateUrl: 'template/minimize_group.html',
            link: function(scope, element, attrs) {
                scope.closeCurrent = function(_v) {
                    var _i = -1;

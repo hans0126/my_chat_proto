@@ -27,11 +27,11 @@
             </ul>
             <div class='contentTitle'>{{chat.room_name}}</div>
         </div>
-        <div class="room_users_list" room-users-list="chat.users" ng-show='usersShow'></div>
+        <div class="room_users_list" ng-show='usersShow'></div>
         <div class='tip' tip='tip' ng-if='tip.visible'></div>
         <div class='contentBody'>
-            <ul class="msgList">
-                <li single-msg="val" tip-status="tip" content-body="contentBody" users-detail="usersDetail" ng-repeat="val in chat.msg"></li>
+            <ul class="msgList" ng-if='!chat.minimize'>
+                <li single-msg="val" tip-status="tip" content-body="contentBody" ng-repeat="val in chat.msg"></li>
             </ul>
         </div>
         <div class='contentInputArea'>

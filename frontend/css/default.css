@@ -217,7 +217,7 @@
  
  #chatWrap .msgList .msg_content {
      max-width: 75%;
-     word-break: break-all;
+     overflow:hidden;
  }
  
  #chatWrap .msgList .msg_content > img {
