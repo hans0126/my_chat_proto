@@ -379,7 +379,7 @@
 
                    writeBox.bind('keydown', function(e) {
                        rangeOffset = getCaretPosition() + 1;
-                       scope.userInput = writeBox.html();
+                       scope.userInput = writeBox.text();
                        if (e.which === 13) {
                            e.preventDefault();
                            e.stopPropagation();
@@ -390,7 +390,7 @@
                                    text: stripTag(scope.userInput),
                                    owner: scope.chat.account
                                })
-                               writeBox.html("");
+                               writeBox.text("");
                                scope.userInput = null;
 
                                sortHistoryRooms(scope.chat.room_id);
