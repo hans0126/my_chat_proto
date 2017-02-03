@@ -269,7 +269,7 @@ function myChat(io) {
 
     function fileUploadComplete(data) {
         var _d = data.data;
-        // console.log(_d);
+         console.log(_d);
 
         var newFileName = data.name.split('.');
         newFileName = randomstring.generate() + "." + newFileName[newFileName.length - 1];

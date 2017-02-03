@@ -1,5 +1,5 @@
    var app = angular.module('app', []);
-   var socketUrl = 'ws://192.168.10.49:3000';
+   var socketUrl = 'ws://localhost:3000';
    app.controller('chat', ['$scope',
        'socket',
        '_',
